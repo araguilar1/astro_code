@@ -1,6 +1,7 @@
 import numpy as np
 from scipy import integrate
 from scipy import constants
+import pandas as pd
 import plotly.io as pio
 import plotly.graph_objects as go
 import astro_func as af
@@ -21,6 +22,8 @@ charT = CQ[2]
 df = af.per_orb_df()
 
 if __name__ == '__main__':
+    per_orb_data = af.per_orb_df()
+
     r = np.array([-0.27, -0.42, 0.25])
     v = np.array([0.3, -1.0, 0.1])
     # r = np.array([0.91, 0., 0.])
@@ -33,7 +36,7 @@ if __name__ == '__main__':
     ODE = lambda t, y_: af.cr3bp_ode(y_, t, mu)
 
     sol = integrate.solve_ivp(ODE, [0, tf], y0_, method='RK45', atol=1e-12, rtol=1e-12)
-
+    
     traj = sol.y
     t = sol.t
 

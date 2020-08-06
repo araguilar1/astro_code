@@ -259,6 +259,6 @@ def nd_2_d(state, charL, charT, mu):
 def per_orb_df():
     """Function returns a dataframe of period Lagrange Orbit information created by Dan Grebow.
         No input is required."""
-    data = r'Data/periodicLagrangeOrbits.csv'
+    data = r'periodicLagrangeOrbits.csv'
     df = pd.read_csv(data)
     return df
