@@ -23,11 +23,8 @@ df = af.per_orb_df()
 
 if __name__ == '__main__':
     per_orb_data = af.per_orb_df()
-
-    r = np.array([-0.27, -0.42, 0.25])
-    v = np.array([0.3, -1.0, 0.1])
-    # r = np.array([0.91, 0., 0.])
-    # v = np.array([0., -0.5, 0.])
+    r = np.array([1.0754, 0.0, -0.2022])
+    v = np.array([0.0, -0.19258, 0.0])
     y0_ = np.array([r[0], r[1], r[2], v[0], v[1], v[2]])
     nPrimOrb = 8
     tf = nPrimOrb * 2 * np.pi

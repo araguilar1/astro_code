@@ -27,28 +27,28 @@ class CelBod:
         Where bID = Body ID # specified by an integer
     """
     raw_data = [[0.039401, 695700.0, 132712440041.94, 'NA', 'NA', 'NA', 'NA'],  # Sun
-                [0.0366, 1738.0, 4902.8, 384400.0, 27.32, 0.0549, 5.145],  # Moon
+                [0.0366, 1738.0, 4902.8, 384400.0, 27.32, 0.0549, 5.145],  # Moon (about Earth)
                 [0.017051, 2440.0, 22031.78, 4902.8, 87.97, 0.205647, 7.0039],  # Mercury
                 [0.004115, 6051.89, 324858.59, 108208441.28, 224.7, 0.006794, 3.39449],  # Venus
                 [1.002737, 6378.14, 398600.44, 149657721.28, 365.26, 0.016192, 0.0045],  # Earth
                 [0.974700, 3394.0, 42828.38, 227937168.37, 686.98, 0.093343, 1.84814],  # Mars
-                [],  # Jupiter
-                [],  # Saturn
-                [],  # Uranus
-                [],  # Neptune
-                [],  # Pluto
-                [],  # Charon
-                [],  # Nix
-                [],  # Hydra
-                [],  # Ganymede
-                [],  # Titan
-                [],  # Titania
-                [],  # Ceres
-                [],  # Enceladus
-                [],  # Phobos
-                [],  # Triton
-                [],  # Callisto
-                []  # Europa
+                [2.418111, 71492.0, 126686534.91, 778350260.22, 4332.59, 0.048708, 1.30394],  # Jupiter
+                [2.252205, 60268.0, 37931207.80, 1433203470.67, 10755.70, 0.050663, 2.48560],  # Saturn
+                [-1.3921089, 25559.0, 5793951.32, 2863429878.70, 30685.40, 0.048551, 0.77151],  # Uranus
+                [1.489754, 24766.0, 6835099.50, 4501859020.15, 60189.0, 0.007183, 1.77740],  # Neptune
+                [0.156563, 1188.30, 869.34, 6018076570.89, 91101.50, 0.258313, 17.22524],  # Pluto
+                [0.15625, 605.0, 102.27, 19596.84, 6.39, 0.00005, 112.89596],  # Charon (about Pluto)
+                [0.5291, 43.33, 0.0003, 48690.0, 24.85, 0.238214, 112.88839],  # Nix (about Pluto)
+                [2.328, 65.0, 0.000320, 64738.0, 38.2, 0.0058652, 0.24200],  # Hydra (about Pluto)
+                ['Sync', 2634.0, 9891.0, 1070042.8, 7.15, 0.0006, 0.186],  # Ganymede (about Jupiter)
+                ['Sync', 2575.5, 8978.13, 1221870.0, 15.95, 0.0288, 0.28],  # Titan (about Jupiter)
+                ['Sync', 788.9, 235.4, 435800.0, 8.71, 0.0022, 0.1],  # Titania (about Uranus)
+                [2.644860, 469.7, 62.63, 413968739.37, 1680.22, 0.076103, 10.6007],  # Ceres 
+                ['Sync', 252.30, 1.21135, 238040.0, 1.370218, 0.0047, 0.009],  # Enceladus (about Saturn)
+                ['Sync', 13.10, 0.000721, 9377.20, 0.32, 0.0151, 1.082],  # Phobos (about Mars)
+                ['Sync', 1352.60, 1432.93, 354760.0, 5.876854, 0.000016, 156.834],  # Triton (about Neptune)
+                [0.05992, 2403.0, 7181.32, 1883000.0, 16.69, 0.007, 0.281],  # Callisto (about Jupiter)
+                []  # Europa (about Jupiter)
                 ]
 
     def __init__(self, name):
@@ -241,19 +241,21 @@ def lagrange_points(mu):
 def d_2_nd(state, charL, charT, mu):
     """Converts a dimensional state (km, km/s) in the MJ2000 Earth Equator Frame
         to the non-dimensional CR3BP rotating frame"""
-    state[0:2] = state[0:2] / charL
-    state[3:5] = charT * state[3:5] / charL
-    state[0] = state[0] - mu
-    return state
+    state_nd = np.array([0.0, 0.0, 0.0, 0.0, 0.0, 0.0])
+    state_nd[0:3] = state[0:3] / charL
+    state_nd[3:6] = charT * state[3:6] / charL
+    state_nd[0] = state[0] - mu
+    return state_nd
 
 
 def nd_2_d(state, charL, charT, mu):
     """Converts a non-dimensional CR3BP rotating frame state to the MJ2000
         Earth Equator frame (km, km/s)"""
-    state[0] = state[0] + mu
-    state[0:2] = charL * state[0:2]
-    state[3:5] = charL * state[3:5] / charT
-    return state
+    state_d = np.array([0.0, 0.0, 0.0, 0.0, 0.0, 0.0])
+    state_d[0] = state[0] + mu
+    state_d[0:3] = charL * state[0:3]
+    state_d[3:6] = charL * state[3:6] / charT
+    return state_d
 
 
 def per_orb_df():
