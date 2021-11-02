@@ -66,6 +66,43 @@ class CelBod:
             self.bID = 4
         elif name == 'Mars':
             self.bID = 5
+        elif name == 'Jupiter':
+            self.bID = 6
+        elif name == 'Saturn':
+            self.bID = 7
+        elif name == 'Uranus':
+            self.bID = 8
+        elif name == 'Neptune':
+            self.bID = 9
+        elif name == 'Pluto':
+            self.bID = 10
+        elif name == 'Charon':
+            self.bID = 11
+        elif name == 'Nix':
+            self.bID = 12
+        elif name == 'Hydra':
+            self.bID = 13
+        elif name == 'Ganymede':
+            self.bID = 14
+        elif name == 'Titan':
+            self.bID = 15
+        elif name == 'Titania':
+            self.bID = 16
+        elif name == 'Ceres':
+            self.bID = 17
+        elif name == 'Enceladus':
+            self.bID = 18
+        elif name == 'Phobos':
+            self.bID = 19
+        elif name == 'Triton':
+            self.bID = 20
+        elif name == 'Callisto':
+            self.bID = 21
+        elif name == 'Europa':
+            self.bID = 22
+        else:
+            print('Error: Celestial Body not found')
+            self.bID = -1
 
         self.data = self.raw_data[self.bID]
 
