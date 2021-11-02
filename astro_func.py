@@ -177,6 +177,10 @@ def cr3bp_ode(y_, t, mu):
 
     return yd_
 
+def cr3bp_ode_STM(y_, t, mu):
+    yd = np.zeros((36,1))
+    
+
 
 def ustar(x_, mu):
     """ Returns the pseudo-potential of the CR3BP """
