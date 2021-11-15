@@ -177,6 +177,56 @@ def cr3bp_ode(y_, t, mu):
 
     return yd_
 
+def cr3bp_ode_STM(y_, t, mu):
+    
+    
+    ## Unpack the state vector
+
+    # Position
+    x = y_[0]
+    y = y_[1]
+    z = y_[2]
+
+    # Velocity
+    xDot = y_[3]
+    yDot = y_[4]
+    zDot = y_[5]
+
+    # STM
+    phi = np.reshape(y_[6:], (6, 6))
+
+    # Scalar Distances from P1 to P3, and P2 to P3
+    d = np.sqrt((x + mu) ** 2 + y ** 2 + z ** 2)
+    r = np.sqrt((x + mu - 1) ** 2 + y ** 2 + z ** 2)
+
+    d3, d5 = d**3, d**5
+    r3, r5 = r**3, r**5
+
+    # Pseudo-Potential Function Partials
+    sigXX = 1 - (1-mu)/d3 - mu/r3 + 3*(1-mu)*(x+mu)**2/d5 + 3*mu*(x-1+mu)**2/r5
+    sigYY = 1 - (1-mu)/d3 - mu/r3 + 3*(1-mu)*y**2/d5 + 3*mu*y**2/r5
+    sigZZ = -(1-mu)/d3 - mu/r3 + 3*(1-mu)*z**2/d5 + 3*mu*z**2/r5
+    sigXY = 3*(1-mu)*(x+mu)*y/d5 + 3*mu*(x-1+mu)*y/r5
+    sigXZ = 3*(1-mu)*(x+mu)*z/d5 + 3*mu*(x-1+mu)*z/r5
+    sigYZ = 3*(1-mu)*y*z/d5 + 3*mu*y*z/r5
+
+    # Jacobian
+    A = np.array([ [0.0, 0.0, 0.0, 1.0, 0.0, 0.0],
+                 [0.0, 0.0, 0.0, 0.0, 1.0, 0.0],
+                 [0.0, 0.0, 0.0, 0.0, 0.0, 1.0],
+                 [sigXX, sigXY, sigXZ, 0.0, 2.0, 0.0],
+                 [sigXY, sigYY, sigYZ, -2.0, 0.0, 0.0],
+                 [sigXZ, sigYZ, sigZZ, 0.0, 0.0, 0.0] ])
+
+    # Acceleration 
+    xDotDot = -(1 - mu) * (x + mu) / d3 - mu * (x - 1 + mu) / r3 + 2 * yDot + x
+    yDotDot = -(1 - mu) * y / d3 - mu * y / r3 - 2 * xDot + y
+    zDotDot = -(1 - mu) * z / d3 - mu * z / r3
+
+    yd = np.array([xDot, yDot, zDot, xDotDot, yDotDot, zDotDot])
+    phiDotVec = np.dot(A, phi).reshape(36)
+    yd = np.hstack((yd, phiDotVec))
+    return yd
 
 def ustar(x_, mu):
     """ Returns the pseudo-potential of the CR3BP """
