@@ -16,18 +16,19 @@ class CelBod:
     Class for extracting celestial body data used in the CR3BP. The data table below contains the following
     information:
 
-        data[bID][0] = Axial Rotation Period (Rev/Day)
-        data[bID][1] = Equatorial Radius (km)
-        data[bID][2] = Gravitational Parameter (mu = G*m (km^3/s^2) )
-        data[bID][3] = Semi-major Axis of Orbit (km)
-        data[bID][4] = Orbital Period (days)
-        data[bID][5] = Orbital Eccentricity
-        data[bID][6] = Inclination of Orbit to Ecliptic (deg)
+        data[ID][0] = Axial Rotation Period (Rev/Day)
+        data[ID][1] = Equatorial Radius (km)
+        data[ID][2] = Gravitational Parameter (mu = G*m (km^3/s^2) )
+        data[ID][3] = Semi-major Axis of Orbit (km)
+        data[ID][4] = Orbital Period (days)
+        data[ID][5] = Orbital Eccentricity
+        data[ID][6] = Inclination of Orbit to Ecliptic (deg)
 
-        Where bID = Body ID # specified by an integer
+        Where ID = Body ID # specified by an integer
     """
-    raw_data = [[0.039401, 695700.0, 132712440041.94, 'NA', 'NA', 'NA', 'NA'],  # Sun
-                [0.0366, 1738.0, 4902.8, 384400.0, 27.32, 0.0549, 5.145],  # Moon (about Earth)
+    raw_data = [
+                [0.039401, 695700.0, 132712440041.94, '--', '--', '--', '--'],  # Sun
+                [0.0366, 1738.0, 4902.8, 384400.0, 27.32, 0.0549, 5.145],  # Moon 
                 [0.017051, 2440.0, 22031.78, 4902.8, 87.97, 0.205647, 7.0039],  # Mercury
                 [0.004115, 6051.89, 324858.59, 108208441.28, 224.7, 0.006794, 3.39449],  # Venus
                 [1.002737, 6378.14, 398600.44, 149657721.28, 365.26, 0.016192, 0.0045],  # Earth
@@ -40,71 +41,70 @@ class CelBod:
                 [0.15625, 605.0, 102.27, 19596.84, 6.39, 0.00005, 112.89596],  # Charon (about Pluto)
                 [0.5291, 43.33, 0.0003, 48690.0, 24.85, 0.238214, 112.88839],  # Nix (about Pluto)
                 [2.328, 65.0, 0.000320, 64738.0, 38.2, 0.0058652, 0.24200],  # Hydra (about Pluto)
-                ['Sync', 2634.0, 9891.0, 1070042.8, 7.15, 0.0006, 0.186],  # Ganymede (about Jupiter)
-                ['Sync', 2575.5, 8978.13, 1221870.0, 15.95, 0.0288, 0.28],  # Titan (about Jupiter)
-                ['Sync', 788.9, 235.4, 435800.0, 8.71, 0.0022, 0.1],  # Titania (about Uranus)
+                ['Synch', 2634.0, 9891.0, 1070042.8, 7.15, 0.0006, 0.186],  # Ganymede (about Jupiter)
+                ['Synch', 2575.5, 8978.13, 1221870.0, 15.95, 0.0288, 0.28],  # Titan (about Jupiter)
+                ['Synch', 788.9, 235.4, 435800.0, 8.71, 0.0022, 0.1],  # Titania (about Uranus)
                 [2.644860, 469.7, 62.63, 413968739.37, 1680.22, 0.076103, 10.6007],  # Ceres 
-                ['Sync', 252.30, 1.21135, 238040.0, 1.370218, 0.0047, 0.009],  # Enceladus (about Saturn)
-                ['Sync', 13.10, 0.000721, 9377.20, 0.32, 0.0151, 1.082],  # Phobos (about Mars)
-                ['Sync', 1352.60, 1432.93, 354760.0, 5.876854, 0.000016, 156.834],  # Triton (about Neptune)
+                ['Synch', 252.30, 1.21135, 238040.0, 1.370218, 0.0047, 0.009],  # Enceladus (about Saturn)
+                ['Synch', 13.10, 0.000721, 9377.20, 0.32, 0.0151, 1.082],  # Phobos (about Mars)
+                ['Synch', 1352.60, 1432.93, 354760.0, 5.876854, 0.000016, 156.834],  # Triton (about Neptune)
                 [0.05992, 2403.0, 7181.32, 1883000.0, 16.69, 0.007, 0.281],  # Callisto (about Jupiter)
-                []  # Europa (about Jupiter)
+                [4.2625, 151.959, 3203.56, 671100.0, 3.552, 0.0094, 7.483], # Europa (about Jupiter)
                 ]
 
     def __init__(self, name):
-        """ Initialize the class """
-        self.bName = name
-        if name == 'Sun':
-            self.bID = 0
-        elif name == 'Moon':
-            self.bID = 1
-        elif name == 'Mercury':
-            self.bID = 2
-        elif name == 'Venus':
-            self.bID = 3
-        elif name == 'Earth':
-            self.bID = 4
-        elif name == 'Mars':
-            self.bID = 5
-        elif name == 'Jupiter':
-            self.bID = 6
-        elif name == 'Saturn':
-            self.bID = 7
-        elif name == 'Uranus':
-            self.bID = 8
-        elif name == 'Neptune':
-            self.bID = 9
-        elif name == 'Pluto':
-            self.bID = 10
-        elif name == 'Charon':
-            self.bID = 11
-        elif name == 'Nix':
-            self.bID = 12
-        elif name == 'Hydra':
-            self.bID = 13
-        elif name == 'Ganymede':
-            self.bID = 14
-        elif name == 'Titan':
-            self.bID = 15
-        elif name == 'Titania':
-            self.bID = 16
-        elif name == 'Ceres':
-            self.bID = 17
-        elif name == 'Enceladus':
-            self.bID = 18
-        elif name == 'Phobos':
-            self.bID = 19
-        elif name == 'Triton':
-            self.bID = 20
-        elif name == 'Callisto':
-            self.bID = 21
-        elif name == 'Europa':
-            self.bID = 22
+        self.body = name
+        if self.body.upper() == "SUN":
+            self.ID = 0
+        elif self.body.upper() == "MOON":
+            self.ID = 1
+        elif self.body.upper() == "MERCURY":
+            self.ID = 2
+        elif self.body.upper() == "VENUS":
+            self.ID = 3
+        elif self.body.upper() == "EARTH":
+            self.ID = 4
+        elif self.body.upper() == "MARS":
+            self.ID = 5
+        elif self.body.upper() == "JUPITER":
+            self.ID = 6
+        elif self.body.upper() == "SATURN":
+            self.ID = 7
+        elif self.body.upper() == "URANUS":
+            self.ID = 8
+        elif self.body.upper() == "NEPTUNE":
+            self.ID = 9
+        elif self.body.upper() == "PLUTO":
+            self.ID = 10
+        elif self.body.upper() == "CHARON":
+            self.ID = 11
+        elif self.body.upper() == "NIX":
+            self.ID = 12
+        elif self.body.upper() == "HYDRA":
+            self.ID = 13
+        elif self.body.upper() == "GANYMEDE":
+            self.ID = 14
+        elif self.body.upper() == "TITAN":
+            self.ID = 15
+        elif self.body.upper() == "TITANIA":
+            self.ID = 16
+        elif self.body.upper() == "CERES":
+            self.ID = 17
+        elif self.body.upper() == "ENCELADUS":
+            self.ID = 18
+        elif self.body.upper() == "PHOBOS":
+            self.ID = 19
+        elif self.body.upper() == "TRITON":
+            self.ID = 20
+        elif self.body.upper() == "CALLISTO":
+            self.ID = 21
+        elif self.body.upper() == "EUROPA":
+            self.ID = 22
         else:
-            print('Error: Celestial Body not found')
-            self.bID = -1
+            print("Error: Celesital Object not found")
+            self.ID = 999999
 
-        self.data = self.raw_data[self.bID]
+        self.data = self.raw_data[self.ID]
 
     def axial_rotation_period(self):
         return self.data[0]
@@ -131,51 +131,44 @@ class CelBod:
         return self.data[2] / (constants.G / 1000 / 1000 / 1000)
 
 
-def characteristic(primary, secondary):
+def characteristic(P1, P2):
     """
    Returns array of characteristic quantities of the CR3BP for a primary-secondary system:
-   1. Characteristic Length
-   2. System Mass Ratio (mu)
+   1. System Mass Ratio (mu) 
+   2. Characteristic Length
    3. Characteristic Time
    """
-    G = constants.G / 1000 / 1000 / 1000  # convert from m to km
-    l_star = secondary.orbit_sma()
-    m1 = primary.mass()
-    m2 = secondary.mass()
-    m_star = m1 + m2
+    G = constants.G  
+    m_star = P1.mass() + P2.mass()
+    m2 = P2.mass()
     mu = m2 / m_star
-    t_star = np.sqrt(l_star ** 3 / G / m_star)
+    lstar = P2.orbit_semi_major_axis()
+    tstar = np.sqrt(lstar ** 3 / (G/1000**3) / m_star)
+    return [mu, lstar, tstar]
 
-    return np.array([l_star, mu, t_star])
 
 
-def cr3bp_ode(y_, t, mu):
-    yd_ = np.array([0.0, 0.0, 0.0, 0.0, 0.0, 0.0])
-
+def cr3bp_ode(ndx, t, mu):
     # Position
-    x = y_[0]
-    y = y_[1]
-    z = y_[2]
-    # Velocity
-    vx = y_[3]
-    vy = y_[4]
-    vz = y_[5]
+    x = ndx[0]
+    y = ndx[1]
+    z = ndx[2]
 
-    # Eq. of Motion
+    # Velocity
+    vx = ndx[3]
+    vy = ndx[4]
+    vz = ndx[5]
+
+    # Scalar distances from P1 to P3 and P2 to P3 respectively
     d = np.sqrt((x + mu) ** 2 + y ** 2 + z ** 2)
     r = np.sqrt((x + mu - 1) ** 2 + y ** 2 + z ** 2)
 
-    # Velocity
-    yd_[0] = y_[3]
-    yd_[1] = y_[4]
-    yd_[2] = y_[5]
-
     # Acceleration
-    yd_[3] = -(1 - mu) * (x + mu) / (d ** 3) - mu * (x - 1 + mu) / (r ** 3) + 2 * vy + x
-    yd_[4] = -(1 - mu) * y / (d ** 3) - mu * y / (r ** 3) - 2 * vx + y
-    yd_[5] = -(1 - mu) * z / (d ** 3) - mu * z / (r ** 3)
+    ax = -(1 - mu) * (x + mu) / (d ** 3) - mu * (x - 1 + mu) / (r ** 3) + 2 * vy + x
+    ay = -(1 - mu) * y / (d ** 3) - mu * y / (r ** 3) - 2 * vx + y
+    az = -(1 - mu) * z / (d ** 3) - mu * z / (r ** 3)
 
-    return yd_
+    return np.array([vx, vy, vz, ax, ay, az])
 
 def cr3bp_ode_STM(y_, t, mu):
     
@@ -325,25 +318,26 @@ def lagrange_points(mu):
     return np.array([[x1, 0], [x2, 0], [x3, 0], [x45, y4], [x45, y5]])
 
 
-def d_2_nd(state, charL, charT, mu):
+def d_2_nd(x, lstar, tstar, mu):
     """Converts a dimensional state (km, km/s) in the MJ2000 Earth Equator Frame
         to the non-dimensional CR3BP rotating frame"""
-    state_nd = np.array([0.0, 0.0, 0.0, 0.0, 0.0, 0.0])
-    state_nd[0:3] = state[0:3] / charL
-    state_nd[3:6] = charT * state[3:6] / charL
-    state_nd[0] = state[0] - mu
-    return state_nd
+    ndx = np.zeros(6)
+    ndx[:] = x[:]
+    ndx[0:3] = ndx[0:3] / lstar
+    ndx[3:6] = ndx[3:6] * tstar / lstar
+    ndx[0]   = ndx[0] - mu
+    return ndx
 
 
-def nd_2_d(state, charL, charT, mu):
+def nd_2_d(ndx, lstar, tstar, mu):
     """Converts a non-dimensional CR3BP rotating frame state to the MJ2000
         Earth Equator frame (km, km/s)"""
-    state_d = np.array([0.0, 0.0, 0.0, 0.0, 0.0, 0.0])
-    state_d[0] = state[0] + mu
-    state_d[0:3] = charL * state[0:3]
-    state_d[3:6] = charL * state[3:6] / charT
-    return state_d
-
+    x=np.zeros(6)
+    x[:] = ndx[:]
+    x[0] = x[0] + mu
+    x[0:3] = x[0:3] * lstar
+    x[3:6] = x[3:6] * lstar / tstar
+    return x
 
 def per_orb_df():
     """Function returns a dataframe of period Lagrange Orbit information created by Dan Grebow.

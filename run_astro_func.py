@@ -15,8 +15,8 @@ earth = af.CelBod('Earth')
 moon = af.CelBod('Moon')
 
 CQ = af.characteristic(earth, moon)
-charL = CQ[0]
-mu = CQ[1]
+mu = CQ[0]
+charL = CQ[1]
 charT = CQ[2]
 
 df = af.per_orb_df() # DataFrame of Periodic Orbits, use as wanted
