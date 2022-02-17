@@ -8,22 +8,20 @@ import astro_func as af
 from plotly.offline import plot
 
 pio.templates.default = 'plotly_dark'
-#test
-G = constants.G / 1000 / 1000 / 1000  # Convert to km^3 / (kg * s^2)
 
-earth = af.CelBod('Earth')
-moon = af.CelBod('Moon')
+earth = af.CelestialObject('Earth')
+moon = af.CelestialObject('Moon')
 
 CQ = af.characteristic(earth, moon)
 mu = CQ[0]
-charL = CQ[1]
-charT = CQ[2]
+lstar = CQ[1]
+tstar = CQ[2]
 
 df = af.per_orb_df() # DataFrame of Periodic Orbits, use as wanted
 
 def main():
     
-    y0 = np.array([1.07597327, 0.0, -.2022, 0.0, -.193298067, 0.0])
+    y0 = np.array([1.07597327, 0.0, -.2022, 0.0, -.193298067, 0.0]) # use this for no-STM ode 
 
     phi0 = np.eye(6).reshape(36)
 
@@ -72,7 +70,7 @@ def main():
         jacTraj = np.append(jacTraj, af.jacobi(r1, mu))
 
     print('\nNon-dimensional state:', y0, '(ND)\n')
-    state = af.nd_2_d(y0, charL, charT, mu)
+    state = af.nd_2_d(y0, lstar, tstar, mu)
     print('Dimensional State:', state, '(km, km/s)\n')
 
     fig = go.Figure()

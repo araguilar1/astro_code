@@ -7,11 +7,11 @@ Author: Abram Aguilar
 """
 
 import numpy as np
-from scipy import constants
+from scipy.constants import G
 import pandas as pd
+import matplotlib.pyplot as plt
 
-
-class CelBod:
+class CelestialObject:
     """
     Class for extracting celestial body data used in the CR3BP. The data table below contains the following
     information:
@@ -115,30 +115,35 @@ class CelBod:
     def mu(self):
         return self.data[2]
 
-    def orbit_sma(self):
+    def mass(self):
+        return self.data[2] / (G / 1000**3)
+
+    def orbit_semi_major_axis(self):
         return self.data[3]
 
-    def orbital_period(self):
-        return self.data[4]
+    def orbital_period(self,unit="day"):
+        if unit == "day":
+            return self.data[4]
+        elif unit == "year":
+            return self.data[4]/365.25
+        else:
+            print("Warning: Unit not found. Defaulting to days.")
+            return self.data[4]
 
-    def orbital_ecc(self):
+    def orbit_eccentricity(self):
         return self.data[5]
 
-    def orbital_inc(self):
+    def orbit_inclination(self):
         return self.data[6]
 
-    def mass(self):
-        return self.data[2] / (constants.G / 1000 / 1000 / 1000)
 
-
-def characteristic(P1, P2):
+def CharacteristicQuantities(P1, P2):
     """
    Returns array of characteristic quantities of the CR3BP for a primary-secondary system:
    1. System Mass Ratio (mu) 
    2. Characteristic Length
    3. Characteristic Time
    """
-    G = constants.G  
     m_star = P1.mass() + P2.mass()
     m2 = P2.mass()
     mu = m2 / m_star
@@ -170,32 +175,28 @@ def cr3bp_ode(ndx, t, mu):
 
     return np.array([vx, vy, vz, ax, ay, az])
 
-def cr3bp_ode_STM(y_, t, mu):
+def cr3bp_ode_STM(ndx, t, mu):
     
-    
-    ## Unpack the state vector
-
     # Position
-    x = y_[0]
-    y = y_[1]
-    z = y_[2]
+    x = ndx[0]
+    y = ndx[1]
+    z = ndx[2]
 
     # Velocity
-    xDot = y_[3]
-    yDot = y_[4]
-    zDot = y_[5]
+    vx = ndx[3]
+    vy = ndx[4]
+    vz = ndx[5]
 
     # STM
-    phi = np.reshape(y_[6:], (6, 6))
+    phi = np.reshape(ndx[6:], (6, 6))
 
-    # Scalar Distances from P1 to P3, and P2 to P3
+    # Scalar Distances from P1 to P3, and P2 to P3 respectively
     d = np.sqrt((x + mu) ** 2 + y ** 2 + z ** 2)
     r = np.sqrt((x + mu - 1) ** 2 + y ** 2 + z ** 2)
 
     d3, d5 = d**3, d**5
     r3, r5 = r**3, r**5
 
-    # Pseudo-Potential Function Partials
     sigXX = 1 - (1-mu)/d3 - mu/r3 + 3*(1-mu)*(x+mu)**2/d5 + 3*mu*(x-1+mu)**2/r5
     sigYY = 1 - (1-mu)/d3 - mu/r3 + 3*(1-mu)*y**2/d5 + 3*mu*y**2/r5
     sigZZ = -(1-mu)/d3 - mu/r3 + 3*(1-mu)*z**2/d5 + 3*mu*z**2/r5
@@ -203,7 +204,7 @@ def cr3bp_ode_STM(y_, t, mu):
     sigXZ = 3*(1-mu)*(x+mu)*z/d5 + 3*mu*(x-1+mu)*z/r5
     sigYZ = 3*(1-mu)*y*z/d5 + 3*mu*y*z/r5
 
-    # Jacobian
+    # Jacboian
     A = np.array([ [0.0, 0.0, 0.0, 1.0, 0.0, 0.0],
                  [0.0, 0.0, 0.0, 0.0, 1.0, 0.0],
                  [0.0, 0.0, 0.0, 0.0, 0.0, 1.0],
@@ -212,32 +213,31 @@ def cr3bp_ode_STM(y_, t, mu):
                  [sigXZ, sigYZ, sigZZ, 0.0, 0.0, 0.0] ])
 
     # Acceleration 
-    xDotDot = -(1 - mu) * (x + mu) / d3 - mu * (x - 1 + mu) / r3 + 2 * yDot + x
-    yDotDot = -(1 - mu) * y / d3 - mu * y / r3 - 2 * xDot + y
-    zDotDot = -(1 - mu) * z / d3 - mu * z / r3
+    ax = -(1 - mu) * (x + mu) / d3 - mu * (x - 1 + mu) / r3 + 2 * vy + x
+    ay = -(1 - mu) * y / d3 - mu * y / r3 - 2 * vx + y
+    az = -(1 - mu) * z / d3 - mu * z / r3
 
-    yd = np.array([xDot, yDot, zDot, xDotDot, yDotDot, zDotDot])
-    phiDotVec = np.dot(A, phi).reshape(36)
+    yd = np.array([vx, vy, vz, ax, ay, az])
+    phiDotVec = np.dot(A, phi).reshape(36) 
     yd = np.hstack((yd, phiDotVec))
     return yd
 
-def ustar(x_, mu):
+def uStar(ndx, mu):
     """ Returns the pseudo-potential of the CR3BP """
-    x = x_[0]
-    y = x_[1]
-    z = x_[2]
+    x = ndx[0]
+    y = ndx[1]
+    z = ndx[2]
     d = np.sqrt((x + mu) ** 2 + y ** 2 + z ** 2)
     r = np.sqrt((x + mu - 1) ** 2 + y ** 2 + z ** 2)
-    u_star = (1 - mu) / d + mu / r + (x ** 2 + y ** 2) / 2
-    return u_star
+    return (1 - mu) / d + mu / r + (x ** 2 + y ** 2) / 2
 
 
-def jacobi(r, mu):
+def jacobi(ndx, mu):
     """Returns the Jacobi constant for some coordinates and mass ratio"""
-    uStar = ustar(r[0:3], mu)
-    J = 2 * uStar - np.dot(r[3:6], r[3:6])
-    # J = 2 - uStar - np.linalg.norm(r[3:6]) ** 2 (Also works, just to show different methods)
-    return J
+    ustar = uStar(ndx, mu)
+    C = 2 * ustar - np.dot(ndx[3:], ndx[3:])
+    # C = 2 - uStar - np.linalg.norm(ndx[3:]) ** 2 (Also works, just to show different methods)
+    return C
 
 
 def lagrange_points(mu):
@@ -318,7 +318,7 @@ def lagrange_points(mu):
     return np.array([[x1, 0], [x2, 0], [x3, 0], [x45, y4], [x45, y5]])
 
 
-def d_2_nd(x, lstar, tstar, mu):
+def nondim(x, lstar, tstar, mu):
     """Converts a dimensional state (km, km/s) in the MJ2000 Earth Equator Frame
         to the non-dimensional CR3BP rotating frame"""
     ndx = np.zeros(6)
@@ -329,7 +329,7 @@ def d_2_nd(x, lstar, tstar, mu):
     return ndx
 
 
-def nd_2_d(ndx, lstar, tstar, mu):
+def dimensionalize(ndx, lstar, tstar, mu):
     """Converts a non-dimensional CR3BP rotating frame state to the MJ2000
         Earth Equator frame (km, km/s)"""
     x=np.zeros(6)
@@ -345,3 +345,29 @@ def per_orb_df():
     data = r'periodicLagrangeOrbits.csv'
     df = pd.read_csv(data)
     return df
+
+def plotZVC(mu, C, fill=0):
+    """ Plots the ZVC surface for a given mu and Jacobi constant"""
+    ax = plt.gca()
+
+    npoints = 1000
+    x = np.linspace(-1.5, 1.5, npoints)
+    y = np.linspace(0.0, 1.5, npoints)
+    ZZ = np.empty((npoints, npoints))
+    ZZ[:] = np.NaN
+    zzPos = np.zeros((npoints, npoints))
+    eps = 0.1
+    for i in range(npoints):
+        for j in range(npoints):
+            ndx = np.array([x[i], y[j], 0.0])
+            temp = jacobi(ndx, mu)
+            if (C >= temp) and (temp > (C * (1 - eps))):
+                ZZ[j, i] = temp
+                zzPos[j, i] = 1
+    
+    if fill == 1:
+        ax.contourf(x, y, ZZ)
+        ax.contourf(x, -y, ZZ)
+    else:
+        ax.contour(x, y, ZZ)
+        ax.contour(x, -y, ZZ)
