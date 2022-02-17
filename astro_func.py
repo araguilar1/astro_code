@@ -152,7 +152,6 @@ def CharacteristicQuantities(P1, P2):
     return [mu, lstar, tstar]
 
 
-
 def cr3bp_ode(ndx, t, mu):
     # Position
     x = ndx[0]
@@ -174,6 +173,7 @@ def cr3bp_ode(ndx, t, mu):
     az = -(1 - mu) * z / (d ** 3) - mu * z / (r ** 3)
 
     return np.array([vx, vy, vz, ax, ay, az])
+
 
 def cr3bp_ode_STM(ndx, t, mu):
     
@@ -221,6 +221,7 @@ def cr3bp_ode_STM(ndx, t, mu):
     phiDotVec = np.dot(A, phi).reshape(36) 
     yd = np.hstack((yd, phiDotVec))
     return yd
+
 
 def uStar(ndx, mu):
     """ Returns the pseudo-potential of the CR3BP """
@@ -339,12 +340,14 @@ def dimensionalize(ndx, lstar, tstar, mu):
     x[3:6] = x[3:6] * lstar / tstar
     return x
 
+
 def per_orb_df():
     """Function returns a dataframe of period Lagrange Orbit information created by Dan Grebow.
         No input is required."""
     data = r'periodicLagrangeOrbits.csv'
     df = pd.read_csv(data)
     return df
+
 
 def plotZVC(mu, C, fill=0):
     """ Plots the ZVC surface for a given mu and Jacobi constant"""
