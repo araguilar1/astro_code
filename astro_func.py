@@ -350,7 +350,7 @@ def per_orb_df():
 
 
 def plotZVC(mu, C, fill=0):
-    """ Plots the ZVC surface for a given mu and Jacobi constant"""
+    """ Plots the ZVC surface for a given mu and Jacobi constant, note: uses matplotlib by default"""
     ax = plt.gca()
 
     npoints = 1000
