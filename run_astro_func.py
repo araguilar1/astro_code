@@ -31,8 +31,8 @@ def main():
     tf = nPrimOrb * 2 * np.pi
     EaMn_lag = af.lagrange_points(mu)
 
-    ODE = lambda t, y_: af.cr3bp_ode(y_, t, mu)         # Use this for no STM 
-    ODE_STM = lambda t, y_: af.cr3bp_ode_STM(y_, t, mu) # Use This for STM
+    ODE = lambda t, y_: af.CR3BP_ODE(y_, t, mu)         # Use this for no STM 
+    ODE_STM = lambda t, y_: af.CR3BP_ODE_STM(y_, t, mu) # Use This for STM
 
     sol = integrate.solve_ivp(ODE_STM, [0, tf], y0_STM, method='DOP853', atol=1e-12, rtol=1e-12)
     

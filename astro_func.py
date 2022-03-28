@@ -152,7 +152,7 @@ def CharacteristicQuantities(P1, P2):
     return [mu, lstar, tstar]
 
 
-def cr3bp_ode(ndx, t, mu):
+def CR3BP_ODE(ndx, t, mu):
     # Position
     x = ndx[0]
     y = ndx[1]
@@ -175,7 +175,7 @@ def cr3bp_ode(ndx, t, mu):
     return np.array([vx, vy, vz, ax, ay, az])
 
 
-def cr3bp_ode_STM(ndx, t, mu):
+def CR3BP_ODE_STM(ndx, t, mu):
     
     # Position
     x = ndx[0]
@@ -322,8 +322,7 @@ def lagrange_points(mu):
 def nondim(x, lstar, tstar, mu):
     """Converts a dimensional state (km, km/s) in the MJ2000 Earth Equator Frame
         to the non-dimensional CR3BP rotating frame"""
-    ndx = np.zeros(6)
-    ndx[:] = x[:]
+    ndx      = np.copy(x)
     ndx[0:3] = ndx[0:3] / lstar
     ndx[3:6] = ndx[3:6] * tstar / lstar
     ndx[0]   = ndx[0] - mu
@@ -333,9 +332,8 @@ def nondim(x, lstar, tstar, mu):
 def dimensionalize(ndx, lstar, tstar, mu):
     """Converts a non-dimensional CR3BP rotating frame state to the MJ2000
         Earth Equator frame (km, km/s)"""
-    x=np.zeros(6)
-    x[:] = ndx[:]
-    x[0] = x[0] + mu
+    x      = np.copy(ndx)
+    x[0]   = x[0] + mu
     x[0:3] = x[0:3] * lstar
     x[3:6] = x[3:6] * lstar / tstar
     return x
@@ -350,7 +348,7 @@ def per_orb_df():
 
 
 def plotZVC(mu, C, fill=0):
-    """ Plots the ZVC surface for a given mu and Jacobi constant, note: uses matplotlib by default"""
+    """ Plots the ZVC surface for a given mu and Jacobi constant, NOTE: uses matplotlib by default"""
     ax = plt.gca()
 
     npoints = 1000
