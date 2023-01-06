@@ -11,6 +11,14 @@ from scipy.constants import G
 import pandas as pd
 import matplotlib.pyplot as plt
 from scipy.integrate import solve_ivp
+import eigenpy
+
+# Define a cross product function using np.cross() that 
+# does not cause a bug in Pylance (VS Code)
+# def cross(a: np.ndarray, b: np.ndarray) -> np.ndarray:
+#     return np.cross(a, b)
+cross = lambda a, b: np.cross(a, b)
+
 
 class CelestialObject:
     """
@@ -323,24 +331,56 @@ def lagrange_points(mu):
     return np.array([[x1, 0], [x2, 0], [x3, 0], [x45, y4], [x45, y5]])
 
 
-def nondim(x, lstar, tstar, mu):
-    """Converts a dimensional state (km, km/s) in the MJ2000 Earth Equator Frame
-        to the non-dimensional CR3BP rotating frame"""
+def nondim(x, lstar, tstar, mu, shift=True):
+    """Takes a dimensional state (km, km/s) and non-dimensionalizes it using the CR3BP
+        Characteristic Quantities
+        
+        if shift = True, origin shifted to system barycenter"""
+
     ndx      = np.copy(x)
     ndx[0:3] = ndx[0:3] / lstar
     ndx[3:6] = ndx[3:6] * tstar / lstar
-    ndx[0]   = ndx[0] - mu
+    if shift: ndx[0] -= mu
     return ndx
 
 
-def dimensionalize(ndx, lstar, tstar, mu):
-    """Converts a non-dimensional CR3BP rotating frame state to the MJ2000
-        Earth Equator frame (km, km/s)"""
-    x      = np.copy(ndx)
-    x[0]   = x[0] + mu
+def dimensionalize(ndx, lstar, tstar, mu, shift=True):
+    """Converts a non-dimensional CR3BP state to a dimensional state (km, km/s)
+    
+    if shift = True, origin shifted to primary"""
+
+    x = np.copy(ndx)
+    if shift: x[0] += mu
     x[0:3] = x[0:3] * lstar
     x[3:6] = x[3:6] * lstar / tstar
     return x
+
+
+def CR3BPtoJ2K(rp2, vp2, direction=0):
+    """" 
+    Returns the Rotation Matrix for the following transformation:   
+    CR3BP State -> J2000 State
+    if direction = 0, then the transformation is from CR3BP to J2000, i.e. returns R
+    if direction = 1, then the transformation is from J2000 to CR3BP, i.e. returns R^-1
+    """
+    lstar = np.linalg.norm(rp2)
+    h_ = cross(rp2, vp2)
+    h = h_/lstar**2
+    xhat = rp2/lstar 
+    zhat = h/np.linalg.norm(h)
+    yhat = cross(zhat, xhat)
+    R0 = np.array([xhat[0], yhat[0], zhat[0], xhat[1], yhat[1], zhat[1], xhat[2], yhat[2], zhat[2]]).reshape(3,3)
+    R1 = np.zeros((3,3))
+    hn = np.linalg.norm(h)
+    R2 = np.array([hn*yhat[0], -hn*xhat[0], 0, hn*yhat[1], -hn*xhat[1], 0, hn*yhat[2], -hn*xhat[2], 0]).reshape(3,3)
+    Rtop = np.vstack((R0, R1))
+    Rbot = np.vstack((R2, R0))
+    R = np.hstack((Rtop, Rbot))
+    
+    if direction == 0:
+        return R
+    elif direction == 1:
+      return np.linalg.inv(R)
 
 
 def per_orb_df():
@@ -352,7 +392,7 @@ def per_orb_df():
 
 
 def plotZVC(mu, C, fill=0):
-    """ Plots the ZVC surface for a given mu and Jacobi constant, NOTE: uses matplotlib by default"""
+    """ Plots the ZVC surface for a given mu and Jacobi constant. NOTE: uses matplotlib by default"""
     ax = plt.gca()
 
     npoints = 1000
