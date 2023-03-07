@@ -11,7 +11,7 @@ from scipy.constants import G
 import pandas as pd
 import matplotlib.pyplot as plt
 from scipy.integrate import solve_ivp
-import eigenpy
+from scipy.optimize import newton
 
 # Define a cross product function using np.cross() that 
 # does not cause a bug in Pylance (VS Code)
@@ -324,6 +324,27 @@ def lagrange_points(mu):
     x3 = -mu - gam3
 
     # L4/L5
+    x45 = 0.5 - mu
+    y4 = np.sqrt(3) / 2
+    y5 = -np.sqrt(3) / 2
+
+    return np.array([[x1, 0], [x2, 0], [x3, 0], [x45, y4], [x45, y5]])
+
+
+def lpoints(mu):
+
+    def collinear(x, mu):
+        d = np.abs(x + mu)
+        r = np.abs(x - 1 + mu)
+        a = x
+        b = (1 - mu) / d ** 3 * (x + mu)
+        c = mu / r ** 3 * (x - 1 + mu)
+        return a - b - c
+    
+    x1 = newton(func=collinear, x0=0, args=(mu,))
+    x2 = newton(func=collinear, x0=1, args=(mu,))
+    x3 = newton(func=collinear, x0=-1, args=(mu,))
+
     x45 = 0.5 - mu
     y4 = np.sqrt(3) / 2
     y5 = -np.sqrt(3) / 2
