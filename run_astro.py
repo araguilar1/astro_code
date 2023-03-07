@@ -89,9 +89,6 @@ def main():
     fig.update_layout(scene=dict(xaxis_title='X (ND)', yaxis_title='Y (ND)', zaxis_title='Z (ND)',
                                  ), scene_aspectmode='data', title='Trajectory in Earth-Moon System')
 
-    # camera = dict(eye=dict(x=0, y=1, z=-2))
-    # fig.update_layout(scene_camera=camera)
-
     plot(fig, filename='orbit.html', auto_open=True)
 
     # Plot Jacobi Const of Trajectory
