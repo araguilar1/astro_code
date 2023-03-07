@@ -46,7 +46,7 @@ def main():
     xdot = traj[3, :]
     ydot = traj[4, :]
     zdot = traj[5, :]
-    # Monodromy Matrix
+    # State Transition Matrix
     phi = traj[6:42, -1]
     phi = phi.reshape(6, 6)
 
