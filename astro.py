@@ -360,8 +360,13 @@ def CR3BPtoJ2K(rp2, vp2, direction=0):
     """" 
     Returns the Rotation Matrix for the following transformation:   
     CR3BP State -> J2000 State
+    States must be dimensionalized first.
+    Rotation matrix is epoch dependent, need spice and info from DExxx file.
+
     if direction = 0, then the transformation is from CR3BP to J2000, i.e. returns R
     if direction = 1, then the transformation is from J2000 to CR3BP, i.e. returns R^-1
+    Based on algorithm in section 2.3.2 of Thomas Pavlak's PhD disseration. 
+    'TRAJECTORY DESIGN AND ORBIT MAINTENANCE STRATEGIES IN MULTI-BODY DYNAMICAL REGIMES'
     """
     lstar = np.linalg.norm(rp2)
     h_ = cross(rp2, vp2)
@@ -373,9 +378,9 @@ def CR3BPtoJ2K(rp2, vp2, direction=0):
     R1 = np.zeros((3,3))
     hn = np.linalg.norm(h)
     R2 = np.array([hn*yhat[0], -hn*xhat[0], 0, hn*yhat[1], -hn*xhat[1], 0, hn*yhat[2], -hn*xhat[2], 0]).reshape(3,3)
-    Rtop = np.vstack((R0, R1))
-    Rbot = np.vstack((R2, R0))
-    R = np.hstack((Rtop, Rbot))
+    Rtop = np.hstack((R0, R1))
+    Rbot = np.hstack((R2, R0))
+    R = np.vstack((Rtop, Rbot))
     
     if direction == 0:
         return R
