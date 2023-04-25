@@ -1,0 +1,48 @@
+
+
+
+// ECEFtoLLA()
+// Converts a Cartesian Earth-Centered-Earth-Fixed position to Latitude, Longitude, Altitude
+// 
+// Inputs / Outputs (see below)
+//
+// Dependencies:  
+//       None
+//
+// Assumptions:
+//       None
+//       
+
+Define Procedure ECEFtoLLA(	Array     ecef,   /* Input/       - ECEF position coordinates in km  */
+							Array      lla);  /*      /Output - Array of latitude, longitude, altitude in degrees and km  */
+
+
+
+	Variable r;
+	Variable c;
+	Variable e;
+	Variable i;
+	//distance from axis of rotation
+	r = sqrt(ecef[0]^2 + ecef[1]^2);
+
+
+	//earth flattening parameter
+	e = sqrt(2*Earth.Flattening-Earth.Flattening^2);
+
+	//loop to iteratively solve for lat
+	lla[0] = atan(ecef[2]/((1-e^2)*r));
+
+	For i = 0 to 4 step 1;
+	   c      = (sqrt(1 - e^2*sin(lla[0])*sin(lla[0])))^-1;
+	   lla[0] = atan((ecef[2] + Earth.Radius*c*e^2*sin(lla[0]))/r);
+	End;
+
+	//solves for altitude above reference ellipse and longitude 
+	lla[2] = r/cos(lla[0]) - Earth.Radius*c;
+	lla[1] = atan2(ecef[1], ecef[0]);
+
+	//converts lat and long back to degrees
+	lla[0] = deg(lla[0]);
+	lla[1] = deg(lla[1]);
+
+EndProcedure;

@@ -1,0 +1,74 @@
+
+
+// TargetDRO()
+// Targets the initial state for a Distant Retrograde Orbit (DRO) around the moon with a desired 'period'
+// 
+// 
+// Inputs / Outputs (see below)
+//
+// Dependencies:  
+//       None
+//
+// Assumptions:
+//      - Assumes the Earth/Moon dynamical system
+//      - Assumes the initial state is at an RLP X/Z Plane crossing (RLP-Y = 0)
+
+
+Define Procedure TargetDRO(	Spacecraft          DRO, 	/* Input/       - Spacecraf to target to the DRO  */
+							TimeSpan  tgtHalfPeriod, 	/* Input/       - the desired 'period' for 1/2 revolution of the DRO */
+							Array     inputRPcoords, 	/* Input/       - the input guess in dimensionalized Rotating-Pulsating coordinates  */
+							Array    outputRPcoords);	/*      /Output - output DRO state in dimensionalized Rotating-Pulsating coordinates  */
+	
+	DifferentialCorrector dc;
+	DifferentialCorrector dc2;
+	
+	RotatingPulsatingSystem rp;
+	
+	Variable rlpVy;
+	Variable rlpX;
+	
+	TimeSpan initialEpoch;
+	TimeSpan deltaT;
+	
+	// rotating pulsating setup
+	rp.SetPrimaryObject(Earth);
+	rp.SetSecondaryObject(Moon);
+	
+	initialEpoch = DRO.Epoch;
+	
+	rlpX  = inputRPcoords[0];
+	rlpVy = inputRPcoords[4];
+	
+	
+	// outer targeting loop
+	// adjust rlpX to get the desired 1/2 period DRO
+	Target using dc;
+		Iterate DRO;
+
+		Vary inputRPcoords[0] = rlpX + 10;
+
+		// inner targeting loop
+		// adjust rlpVy to get a good plane crossing
+		Target using dc2;
+
+			Iterate DRO;
+
+			Vary inputRPcoords[4] = rlpVy + 0.0001;
+
+			rp.SetSpacecraftState(DRO, inputRPcoords);
+
+			Try;
+				Step DRO to (rp.GetPosVelOfObject(DRO.Epoch, DRO)[1] == 0);
+			End;
+
+			Achieve rp.GetPosVelOfObject(DRO.Epoch, DRO)[3] = 0 +/- 1e-06;
+		End;
+
+		rlpVy  = inputRPcoords[4];
+		deltaT = DRO.Epoch - initialEpoch;
+
+		Achieve deltaT = tgtHalfPeriod +/- TimeSpan.FromMinutes(10);
+	End;
+	
+	outputRPcoords = inputRPcoords;
+EndProcedure;

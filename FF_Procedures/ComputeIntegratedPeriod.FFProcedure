@@ -1,0 +1,43 @@
+
+// ComputeIntegratedPeriod()
+// Procedure to compute the 'current' integrated period by 
+// computing the time difference between the epoch of the previous Ascending Node
+// and the epoch of the next Ascending Node
+// uses Save/Restore because of the forward/backward propagation
+//
+// Inputs / Outputs (see below)
+//
+// Dependencies:  
+//       - None
+//
+// Assumptions:
+//       - assumes a periodic orbit with a well defined line of Nodes
+//   
+
+
+Define Procedure ComputeIntegratedPeriod(Spacecraft             sc,   /* Input/       - Spacecraft whose period is to be calculated  */
+										 Variable   useSaveRestore,   /* Input/       - flag specifying whether or not to save/Restore the spacecraf (1=yes, 0=no)  */
+										 Variable integratedPeriod);  /*      /Output - the node-to-node integrated period (seconds) */
+	
+	TimeSpan startEpoch;
+	
+	If (useSaveRestore);
+		sc.Save();
+	End;
+	
+	sc.Propagator.StepSize.Scaled(-1);  // step backward
+
+	
+	sc.StepToNode(0);
+	startEpoch = sc.Epoch;
+	sc.Propagator.StepSize.Scaled(-1);// back to forward
+	sc.Step();
+	sc.StepToNode(0);
+	
+	integratedPeriod = (sc.Epoch - startEpoch).ToSeconds();
+	
+	If (useSaveRestore);
+		sc.Restore();
+	End;
+	
+EndProcedure;

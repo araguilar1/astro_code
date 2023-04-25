@@ -1,0 +1,41 @@
+
+// ConvertTLEtoEpoch()
+// Shifts the TLE state to the desired input epoch, and sets the epoch/state into the provided spacecraft object
+// The procedure does NOT propagate the state to the desired epoch
+// The procedure converts the TLE state to the Spherical Latitude/Longitude element set, shifts the epoch, and then
+// converts to MJ2K
+//
+// Inputs / Outputs (see below)
+//
+// Dependencies:  
+//       - None
+//
+// Assumptions:
+//       -None 
+//  
+
+Define Procedure ConvertTLEtoEpoch(String          tlefile,   /* Input/       - filename and full or relative path of TLE file  */
+								   TimeSpan   desiredEpoch,   /* Input/       - Epoch of desired spacecraft state  */
+								   Spacecraft           sc);  /*      /Output - Spacecraft with state that is shifted from the TLE epoch to the deisred epoch  */
+	
+	Array noradEls;
+	Array sphLatLong;
+	Array mj2kStateAtEpoch;
+	
+	TwoLineElement tle;
+	
+	tle.LoadNoradTLE(tlefile);
+	
+	noradEls = {tle.Inclination, tle.RAAN, tle.Eccentricity, tle.ArgumentOfPerigee, tle.MeanAnomaly, tle.MeanMotion};
+	
+	sphLatLong = ElementConvert(9, 8, tle.Epoch, noradEls);//, Earth.Mu, tle.Bstar);
+	
+	
+	// now shift time and rotate to MJ2K
+	mj2kStateAtEpoch = ElementConvert(8, 1, desiredEpoch, sphLatLong);
+	
+	sc.Epoch    = desiredEpoch;
+	sc.Position = mj2kStateAtEpoch[0:2];
+	sc.Velocity = mj2kStateAtEpoch[3:5];
+	
+EndProcedure;

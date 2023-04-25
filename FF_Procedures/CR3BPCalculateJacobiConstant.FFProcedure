@@ -1,0 +1,24 @@
+// CR3BPCalculateJacobiConstant()
+//
+// Calculate the Jacobi Constant for a given CR3BP State
+//
+// Inputs/Outputs:
+// 	- (See Below)
+//
+// Dependencies:
+// 	- CR3BPCalculateUstar()
+//
+// Assumptions:
+// 	- Assumes the input state is a CR3BP non-dimensional state vector
+
+Define Procedure CR3BPCalculateJacobiConstant(Array state, /* Input/       - Non-dimensional CR3BP state */ 
+											  Variable mu, /* Input/       - Mass Ratio of the system */
+											  Variable J   /*      /Output - Jacobi Constant */);
+	
+	Variable UStar;
+	Variable vSquared = state[3:5].Norm()^2;
+	
+	Call CR3BPCalculateUstar(state, mu, UStar);
+	J = 2*UStar - vSquared;
+	
+EndProcedure;

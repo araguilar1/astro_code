@@ -1,0 +1,56 @@
+
+
+
+// CheckStringArrayOrAddValue()
+// Searches the specfied scring array (arrToCheck) for any element containing the specified value (valueToAdd)
+// If the value is not found in the array, it is added to the end of the array
+// 
+// Inputs / Outputs (see below)
+//
+// Dependencies:  
+//       None
+//
+// Assumptions:
+//       
+	
+Define Procedure CheckStringArrayOrAddValue(StringArray         arrToCheck,   /* Input/       - array of values that need to be searched  */
+									  		String              valueToAdd,   /* Input/       - value to check against the array  */
+											Variable    caseSensitiveOrNot,   /* Input/       - flag indicating whethere or not to consider casing  (1=sensitive, 0=not)*/
+									  		Variable         wasValueAdded);  /*      /Output - flag indicating if a new value was added to the array  */
+	
+	Variable i;
+	Variable foundValue;
+	
+	String arrVal;
+	String checkVal;
+	
+	foundValue    = 0;
+	wasValueAdded = 0;
+	
+	If (caseSensitiveOrNot == 1);
+		checkVal = valueToAdd;    // case sensitive
+	Else;
+		checkVal = valueToAdd.ToLower;
+	End;
+	
+	For i = 0 to arrToCheck.Dimension-1;
+		
+		If (caseSensitiveOrNot == 1);
+			arrVal = arrToCheck[i];   // case sensitive
+		Else;
+			arrVal = arrToCheck[i].ToLower;
+		End;
+		
+		
+		If (arrVal == checkVal);
+			foundValue = 1;
+			Break;
+		End;
+	End;
+	
+	If ( foundValue == 0);
+		arrToCheck.PushBack(valueToAdd);
+		wasValueAdded = 1;
+	End;
+	
+EndProcedure;

@@ -1,0 +1,40 @@
+// procedure that r
+
+// GetNumberOfProcessesRunning()
+// Runs a command-line call to report the number of running processes
+// with a given process name EG "ff.exe"
+//
+// Inputs/Outputs:  (See below)
+//
+//
+// Dependencies:
+//       - None
+//
+// Assumptions:
+//       - The user has file-write access to the directory where the MissionPlan
+//         is located
+//
+
+Define Procedure GetNumberOfProcessesRunning(	String     processName, 	/* Input/       - the name of the process to be counted  */
+												Variable  processCount);	/*      /Output - the number of currently executing processes  */
+	
+	String procCountCmd;
+	String processCountFileName;
+	StringArray procCountFile;
+	
+	processCountFileName = processName.Replace(".", "")+"_ProcessCount.txt";
+	
+	procCountCmd = 'cmd.exe /c tasklist | find /I /C "'+processName+'" > "' + processCountFileName + '"';
+	
+	// check number of processName jobs
+	Run procCountCmd with wait;
+	
+	procCountFile.ReadFromFile("./"+processCountFileName);
+	
+	If (procCountFile.Dimension > 0);
+		processCount = procCountFile[0].ToVariable();
+	Else;
+		processCount = 0;
+	End;
+	
+EndProcedure;

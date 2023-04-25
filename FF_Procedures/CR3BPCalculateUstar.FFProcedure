@@ -1,0 +1,27 @@
+// CR3BPCalculateUstar()
+//
+// Calculate a CR3BP System state vector Pseudo-potential
+//
+// Inputs/Outputs:
+//	- (See Below):
+//
+// Dependencies:
+// 	- None
+//
+// Assmptions:
+//	- Assumes the input state is a non-dimensional CR3BP state vector
+
+Define Procedure CR3BPCalculateUstar(Array state,   /* Input/		- Non-Dimensional CR3BP State */ 
+									 Variable mu,   /* Input/		- Mass Ratio of system */
+									 Variable UStar /*      /Output - State Pseudo-Potential */ );
+	
+	Variable x = state[0];
+	Variable y = state[1];
+	Variable z = state[2];
+	
+	Variable d = sqrt( (x+mu  )^2 + y^2 + z^2);
+	Variable r = sqrt( (x+mu-1)^2 + y^2 + z^2);
+	
+	UStar = (1-mu)/d + mu/r + (x^2+y^2)/2;
+	
+EndProcedure;

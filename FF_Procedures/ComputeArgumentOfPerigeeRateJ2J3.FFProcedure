@@ -1,0 +1,56 @@
+
+
+// ComputeArgumentOfPerigeeRateJ2J3()
+// Computes the drift rate of the orbit's Argument of Perigee as a function of 
+// Earth's J2 & J3 terms
+// Inputs:
+//       - see below
+//
+// Dependencies:
+//     - None
+//
+// Assumptions:
+//     - Earth as central body
+//     - uses Brouwer-Lyddane J2 elements
+
+Define Procedure ComputeArgumentOfPerigeeRateJ2J3(Spacecraft      sc,    /* Input/       - Spacecraft to compute the AOP rate  */
+												  Variable   aopRate);   /*      /Output - AOP rate, in degrees per day  */
+
+    Variable meanMotion;
+	Variable eSquared;
+	Variable p;
+	Variable Es;
+	Variable pi;
+	Variable sinOfIncSq;
+	Variable cosOfIncSq;
+	Variable j2Term;
+	Variable j3Term;
+	Variable sinAopOverEsinInc;
+	
+	pi         = acos(-1);
+    meanMotion = sqrt(sc.CentralBodyObject.Mu / (sc.BLJ2A*sc.BLJ2A*sc.BLJ2A));
+    eSquared   = sc.BLJ2E*sc.BLJ2E;
+    p          = sc.BLJ2A * (1-eSquared);
+    Es         = (sc.CentralBodyObject.Radius / p);
+
+	cosOfIncSq  = cos(rad(sc.BLJ2I));
+	cosOfIncSq *= cosOfIncSq;
+	sinOfIncSq  = sin(rad(sc.BLJ2I));
+	sinOfIncSq *= sinOfIncSq;
+	
+	sinAopOverEsinInc = sin(rad(sc.BLJ2W))/ (sc.BLJ2E*sin(rad(sc.BLJ2I)));
+    
+    
+	j2Term  = (3/2) * sc.CentralBodyObject.J2 * Es * Es * meanMotion;
+	j3Term  = (3/2) * sc.CentralBodyObject.J3 * Es * Es * Es * sinAopOverEsinInc * meanMotion;
+		
+	
+    // Final values
+    aopRate = j2Term * (2 - (5/2)*sinOfIncSq);
+	
+	aopRate -= j3Term * ( ((5/4)*sinOfIncSq - 1)*sinOfIncSq + eSquared*(1 - (35/4)*sinOfIncSq*cosOfIncSq) );
+	
+	aopRate = deg(aopRate)*86400;
+
+EndProcedure;
+

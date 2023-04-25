@@ -1,0 +1,44 @@
+
+
+// ConvertRLPUnits()
+// Convertes the units of a rotating libration point state, converting between dimensionalized (km, km/s) and
+// non-dimensionalized (DU, DU/TU) units.  The convDir specifies which direction the conversion should go.
+// 
+// Inputs / Outputs (see below)
+//
+// Dependencies:  
+//       None
+//
+// Assumptions:
+//       
+
+Define Procedure ConvertRLPUnits(CelestialObject body1,   /* Input/       - Celestial Object representing primary 1 for the 3-body system  */
+								 CelestialObject body2,   /* Input/       - Celestial Object representing primary 2 for the 3-body system  */
+								 TimeSpan    convEpoch,   /* Input/       - the epoch at which to perform the conversion  */
+								 Variable      convDir,   /* Input/       - 1 = dimensionalize, 2 = non-dimensionalize  */
+								 Array      inputState,   /* Input/       - input state corresponding to the conversion direction  */
+								 Array     outputState);  /*      /Output - input state corresponding to the conversion direction  */
+	
+
+	Variable	characteristicLength 		= body1.VectorToObject(body2, convEpoch).Norm();	
+	Variable	characteristicMass			= body1.Mass + body2.Mass;						
+	Variable	characteristicTime			= sqrt(characteristicLength^3/(Constants.G*characteristicMass));
+
+	outputState.Dimension = inputState.Dimension;
+
+	If (convDir == 1);
+		// dimensionalize 
+		outputState[0:2] = inputState[0:2]*characteristicLength;
+		outputState[3:5] = inputState[3:5]*(characteristicLength / characteristicTime);
+		
+	ElseIf (convDir == 2);
+		// non-dimensionalize
+		outputState[0:2] = inputState[0:2] / characteristicLength;
+		outputState[3:5] = inputState[3:5] / (characteristicLength / characteristicTime);
+		
+	Else;
+		Diagnostics.ReportErrorMessage(1, "Invalid value for conversion direction.  Must be 1 or 2.");
+	End;
+
+EndProcedure;
+

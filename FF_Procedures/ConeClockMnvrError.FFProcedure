@@ -1,0 +1,37 @@
+// ConeClockMnvrError()
+// Compute and apply random Maneuver Pointing errors as a function of Cone and Clock anges
+// (can be for Impulsive or Finite Burn objects)
+//
+// Inputs / Outputs (see below)
+//
+// Dependencies:
+//       None
+//
+// Assumptions:
+//       
+Define Procedure ConeClockMnvrError(RandomNumberGenerator          rng,     /* Input/       -  RNG for error randomization */
+                                    Variable              ptgError3sig,     /* Input/       -  3-sigma pointing error, in degrees */
+				    				ThrustEvent                   burn);    /*      /Output -  Impulsive or Finite Burn modified with random errors */
+
+	Variable clkAngle;
+	Variable coneAngle;
+	Variable deltaX;
+	Variable deltaY;
+
+	// randomize Clock and Cone angles
+	clkAngle  = rad(rng.UniformDistribution(0, 359));
+	coneAngle = rad(rng.GaussianDistribution(0, ptgError3sig/3));
+
+	// compute Delta X/Y offsets in ThrustDirection Frame
+	deltaY    = sqrt( (sin(coneAngle)^2)/(1 + 1/(tan(clkAngle)^2))) * sign(rng.UniformDistribution(-1,1));
+	deltaX    = deltaY/(tan(clkAngle));
+
+	If (burn IsType FiniteBurn) then;
+		(burn AsType FiniteBurn).OD.ThrustOffsetDeltaX.Value = deltaX;
+		(burn AsType FiniteBurn).OD.ThrustOffsetDeltaY.Value = deltaY;
+	ElseIf (burn IsType ImpulsiveBurn) then;
+		(burn AsType ImpulsiveBurn).OD.DeltaVOffsetDeltaX.Value = deltaX;
+		(burn AsType ImpulsiveBurn).OD.DeltaVOffsetDeltaY.Value = deltaY;
+	End;
+
+EndProcedure;

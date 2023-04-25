@@ -1,0 +1,165 @@
+
+
+
+// ComputeReceivedFrequency()
+// Computes the doppler-shifted frequency received at a ground station from a signal originating
+// at a spacecraft.  Also computes the Frequency Difference Of Arrival (FDOA) partial derivatives
+// with respect to the transmitting spacecraft for this particular leg
+//
+//
+// 
+// Inputs / Outputs (see below)
+//
+// Dependencies:  
+//       None
+//
+// Assumptions:
+//       this assumes the transmitter SC is at the transmission epoch, not the reception epoch!
+// 
+// 
+
+Define Procedure ComputeReceivedFrequency(	Spacecraft       transmitter, 	/* Input/       - spacecraft at the 'start' node of the ray-path (at the transmission epoch)  */
+											GroundStation       receiver, 	/* Input/       - ground station at the 'end' node of the ray-path (using the reception epoch)  */
+											TimeSpan     reception_epoch, 	/* Input/       - the epoch of reception of the signal at the ground station  */
+											Variable        shifted_freq,	/*      /Output - the value of the doppler-shifted received frequency */
+											Matrix   sc_pos_vel_partials);	/*      /Output - the partial derivatives of the FDOA measurement with respect to the transmitting spacecraft */
+	
+	Array ground_mj2k   = PositionVelocityConvert(4, 1, reception_epoch, {receiver.FixedPosition, 0, 0, 0});
+	
+	Array rel_pos = ground_mj2k[0:2] - transmitter.Position;
+	Array rel_vel = ground_mj2k[3:5] - transmitter.Velocity;
+	
+	Variable rho        = rel_pos.Norm();
+	Variable r_dot_v    = rel_pos.DotProduct(rel_vel);
+	Variable range_rate = (r_dot_v / rho);
+	
+	shifted_freq = (1 - range_rate/Constants.c + 0.5*(range_rate/Constants.c)^2) * receiver.Antenna.ReceiveFrequency;
+	
+	Array sc_pos_partials =  rel_pos*r_dot_v/(rho^3) - rel_vel/rho + range_rate*rel_pos*r_dot_v^2/(rho^4) - rel_vel*r_dot_v/(rho^2);
+	Array sc_vel_partials = -rel_pos/rho - rel_pos*r_dot_v/(rho^2);
+	
+	sc_pos_partials /= Constants.c;
+	sc_vel_partials /= Constants.c;
+
+	sc_pos_vel_partials = {sc_pos_partials, sc_vel_partials}.ToRowMatrix();
+	
+EndProcedure;
+
+
+
+
+// SimulateTDOA()
+// Simulates both the Time Difference Of Arrival (TDOA) and the Frequency Difference Of Arrival (FDOA)
+// measurements for the input spacecraft and ground stations.  Also computes the partial derivatives
+// of the measurements with respect to the position and velocity of the transmitting spacecraft.
+// When specified, Gaussian Noise is added to the measurements as specfied in the primary Ground Station
+// CustomObservations properties
+//
+// 
+// Inputs / Outputs (see below)
+//
+//
+// Dependencies:  
+//       - GsToScLightTime()
+//       - ScToGsLightTime()
+//       - ComputeReceivedFrequency()
+//
+// Assumptions:
+//       - the sc_tdoa_partials matrix is sized as (1xN) where N>=6
+//       - the primary GroundStation has been configured with CustomObservations for TDOA/FDOA measurements
+//
+// 
+
+Define Procedure SimulateTDOA(	Spacecraft              sc, 	/* Input/       - the transmitting spacecraft for the TDOA/FDOA measurement simulation  */
+								GroundStation      primary, 	/* Input/       - the primary receiveing ground station  */
+								GroundStation    secondary, 	/* Input/       - the secondary receiveing ground station  */
+								TimeSpan          obs_time, 	/* Input/       - the epoch of reception of the signal at the primary ground station  */
+								Variable         add_noise, 	/* Input/       - 0/1 flag indicating whether or not to add random noise to the measurements  */
+								Variable     calc_partials, 	/* Input/       - 0/1 flag indicating whether or not to calculate the measurement partial derivatives */
+								RandomNumberGenerator  rng, 	/* Input/       - a RandomNumberGenerator, initialized with a Seed Value  */
+								TimeSpan              tdoa, 	/*      /Output - the simulated value of TODA in seconds */
+								Variable              fdoa,		/*      /Output - the simulated value of FDOA in Hz */
+								Matrix    sc_tdoa_partials,  	/*      /Output - 1xN matrix, assuming N>=6, and only populates the TDOA pos/vel partials wrt the spacecraft */
+								Matrix    sc_fdoa_partials); 	/*      /Output - 1xN matrix, assuming N>=6, and only populates the FDOA pos/vel partials wrt the spacecraft */
+	
+	TimeSpan primary_light_time;
+	TimeSpan secondary_light_time;
+	TimeSpan transmission_time;
+	TimeSpan primary_rec_time;
+	TimeSpan secondary_rec_time;
+	
+	Variable primary_rec_freq;
+	Variable secondary_rec_freq;
+	Variable primary_doppler_shift;
+	Variable secondary_doppler_shift;
+	
+	Matrix leg_1_partial;
+	Matrix leg_2_partial;
+	Matrix fdoa_leg_1_partial;
+	Matrix fdoa_leg_2_partial;
+	
+	Matrix stm;
+	TimeSpan noise_value;
+	
+	
+	sc.Save(sc.DisplayName+"_Start");
+	
+	primary_rec_time = obs_time;
+	
+	sc.StepToEpoch(obs_time);
+	
+	// start with reception time at 'primary' ground station
+	// compute transmission time from spacecraft
+	Call GStoSCLightTime(primary, sc, -1, primary_light_time);
+	
+	transmission_time = obs_time + primary_light_time;
+	
+	If (calc_partials);
+		// step SC to transmission epoch and collect STM
+		stm.FillDiagonal(1, 6);
+		
+		(sc.Propagator AsType Integrator).CalculateSTM = 1;
+		WhileStepping sc to (sc.Epoch == transmission_time);
+			stm = (sc.Propagator AsType Integrator).STM*stm;
+		End;
+	Else;
+		sc.StepToEpoch(transmission_time);
+	End;
+	
+	// compute reception time at 'secondary' ground station
+	Call SCtoGSLightTime(sc, secondary, 1, secondary_light_time);
+	
+	secondary_rec_time = transmission_time + secondary_light_time;
+	
+	// difference reception times
+	tdoa = secondary_rec_time - primary_rec_time;
+	
+	
+	// compute received frequencies and difference
+	Call ComputeReceivedFrequency(sc,   primary, primary_rec_time,   primary_rec_freq, fdoa_leg_1_partial);
+	Call ComputeReceivedFrequency(sc, secondary, secondary_rec_time, secondary_rec_freq, fdoa_leg_2_partial);
+	
+	fdoa = secondary_rec_freq - primary_rec_freq;
+	
+	If (calc_partials);
+		// compute TDOA partials
+		leg_1_partial = (sc.Position - primary.GetPositionAtEpoch(primary_rec_time)).Normalized().ToRowMatrix() / Constants.c;
+		leg_2_partial = (sc.Position - secondary.GetPositionAtEpoch(secondary_rec_time)).Normalized().ToRowMatrix() / Constants.c;
+		
+		sc_tdoa_partials[0,0:5] =  [leg_2_partial - leg_1_partial,  0,0,0];
+		sc_fdoa_partials[0,0:5] =  (fdoa_leg_2_partial - fdoa_leg_1_partial);
+		
+		sc_tdoa_partials[0,0:5] *= stm.Inverse();
+		sc_fdoa_partials[0,0:5] *= stm.Inverse();
+	End;
+	
+	If (add_noise);
+		tdoa += TimeSpan.FromSeconds(rng.GaussianDistribution(0, primary.Antenna.OD.CustomObservations[0].Measurements[0].Noise));
+		fdoa += rng.GaussianDistribution(0, primary.Antenna.OD.CustomObservations[0].Measurements[1].Noise);
+	End;
+
+	
+	sc.Restore(sc.DisplayName+"_Start");
+	
+EndProcedure;
+

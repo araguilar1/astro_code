@@ -1,0 +1,253 @@
+
+// TrackingScheduleGenerator()
+// Generates a schedule of tracking passes for the input Spacecraft and GroundStations.  The schedule is
+// determined based on geometric visibility and the inputs for nominal pass length
+//
+// Inputs/Outputs:
+//       - see below
+//
+// Dependencies:
+//     - None
+//
+// Assumptions:
+//     - Assumes the only Celestial objects needed for occultation calculations are the Earth and Moon
+//     - Assumes the minimum acceptable pass length is 90% of the nominal pass length
+
+Define Procedure TrackingScheduleGenerator(	Spacecraft                  sc, 	/* Input/       - Spacecraft for which a tracking schedule will be generated  */
+											List<GroundStation>    gndStns, 	/* Input/       - List of Ground Stations for which tracking visibility will be computed */
+											Variable              duration, 	/* Input/       - The length of time in days over which a schedule will be generated  */
+											Variable     nominalPassLength, 	/* Input/       - The length of time for desired nominal passes  */
+											Variable     minPassSeparation, 	/* Input/       - the minimum amount of time between subsequent passes in days  */
+											Variable          minElevation, 	/* Input/       - A minimum elevation required for contact.  Is used in union with Station masks */
+											Variable          rngSeedValue,		/* Input/       - the seed value for the RandomNumberGenerator  */
+											List<Matrix> visibilityWindows,		/*      /Output - List of Matrices, one per GroundStation, with start/stop times of visibility  */
+											List<Matrix>      passSchedule);	/*      /Output - List of Matrices, one per GroundStation, with start/stop time of scheduled passes  */
+	
+	Variable i;
+	Variable j;
+	Variable n;
+	Variable contacts;
+	Variable purgeCount;
+	
+	TimeSpan endEpoch;
+	TimeSpan miniumPassLength;
+	TimeSpan minimumPassGap;
+	TimeSpan passAvailability;
+	TimeSpan nomPassLength;
+	
+	TimeSpanArray  seqPassStarts;
+	TimeSpanArray  seqPassEnds;
+	TimeSpanArray  eventTimes;
+	Array          eventTypes;
+	Array          passCnt;
+	Array          seqStnInds;
+	Array          temp;
+	Array          curStnInds;
+	
+	RandomNumberGenerator rng;
+	
+	List<Array>         stnMasks;
+	List<VisibilitySegment> lVis;
+	List<TimeSpanArray> aosTimes;
+	List<TimeSpanArray> losTimes;
+	
+	
+	rng.Seed = rngSeedValue;
+	
+	
+	// set the minimum pass length as 90% of the nominal
+	nomPassLength    = TimeSpan.FromHours(nominalPassLength);
+	miniumPassLength = nomPassLength.Scaled(0.9);
+	minimumPassGap   = TimeSpan.FromDays(minPassSeparation);
+	
+	sc.Save("initialState");
+	
+	endEpoch = sc.Epoch + TimeSpan.FromDays(duration);
+	
+	stnMasks.Count          = gndStns.Count;
+	lVis.Count              = gndStns.Count;
+	aosTimes.Count          = gndStns.Count;
+	losTimes.Count          = gndStns.Count;
+	passCnt.Dimension       = gndStns.Count;
+	passSchedule.Count      = gndStns.Count;
+	visibilityWindows.Count = gndStns.Count;
+
+	// save orginal GS masks, modify with min Elevation, and set up vis calcs
+	For i = 0 to gndStns.Count-1;
+
+		stnMasks[i].Dimension = gndStns[i].MaskElevation.Count;
+		
+		// if geodetics mask is less than min, overwrite with min
+		For j = 0 to gndStns[i].MaskElevation.Count-1;
+			
+			stnMasks[i][j] = gndStns[i].MaskElevation[j];
+			If (gndStns[i].MaskElevation[j] < minElevation);
+				gndStns[i].MaskElevation[j] = minElevation;
+			End;
+		End;
+
+		lVis[i].SetObserver(gndStns[i]);
+		lVis[i].SetTarget(sc);
+
+		lVis[i].AddOccultingBody(Earth, Moon);
+	End;
+		
+	
+
+	// get visibility windows
+	While (sc.Epoch < endEpoch);
+
+		Step sc;
+
+		contacts = 0;
+		For i = 0 to gndStns.Count-1;
+
+			contacts += lVis[i].Visibility(sc.Epoch);
+			n = lVis[i].VisibilityTimes(sc.Epoch, eventTimes, eventTypes);
+
+			If (n > 0);
+				For j = 0 to n-1;
+					If (eventTypes[j] == 1);
+						aosTimes[i].PushBack(eventTimes[j]);
+					Else;
+						losTimes[i].PushBack(eventTimes[j]);
+					End;
+				End;
+			End;
+		End;
+	End;
+
+
+	// ensure equal start/stops
+	// ensure minimum pass length
+	For i = 0 to gndStns.Count-1;
+
+		// ensure equal AOS/LOS arrays
+		If (losTimes[i].Dimension < aosTimes[i].Dimension);
+			losTimes[i].PushBack(sc.Epoch);// end of sim	
+		ElseIf (losTimes[i].Dimension > aosTimes[i].Dimension);
+			losTimes[i].PopBack(); // remove last LOS	
+		End;
+
+		// copy ALL the available visibilty times to output
+		visibilityWindows[i].Resize(aosTimes[i].Dimension, 2);
+		For j = 0 to aosTimes[i].Dimension-1;
+			visibilityWindows[i][j,0] = aosTimes[i][j].ToDays();
+			visibilityWindows[i][j,1] = losTimes[i][j].ToDays();
+		End;
+		
+		// now purge any short windows
+		j = 0;
+		While(j < aosTimes[i].Dimension);
+			passAvailability = losTimes[i][j] - aosTimes[i][j];
+
+			If (passAvailability < miniumPassLength);
+				aosTimes[i].Erase(j);
+				losTimes[i].Erase(j);
+			Else;
+				j++;
+			End;
+		End;
+	End;
+
+
+	// now enforce pass separations
+
+	// build single arrays for sorting
+	For i = 0 to gndStns.Count-1 step 1;
+		If (aosTimes[i].Dimension > 0);
+			seqPassStarts = {seqPassStarts, aosTimes[i]};
+			seqPassEnds   = {seqPassEnds, losTimes[i]};
+
+			temp.Fill(i, aosTimes[i].Dimension);
+			seqStnInds   = {seqStnInds, temp};
+		End;
+	End;
+
+	// sort them
+	seqPassStarts.SortAscending(seqPassEnds, seqStnInds);
+
+	// now purge passes that are too close in time
+	i = 1;
+	While (i < seqPassStarts.Dimension);
+		If ( (seqPassStarts[i]-seqPassStarts[i-1]) < minimumPassGap) then;
+			purgeCount++;
+			//Report purgeCount, seqStnInds[i], (seqPassStarts[i]-seqPassStarts[i-1]).ToHours(), seqPassStarts[i].ConvertToCalendarDate();
+
+			seqPassStarts.Erase(i);
+			seqPassEnds.Erase(i);
+			seqStnInds.Erase(i);
+		Else;
+			// don't repeat stations
+			If (seqStnInds[i] == seqStnInds[i-1]);
+				seqPassStarts.Erase(i);
+				seqPassEnds.Erase(i);
+				seqStnInds.Erase(i);
+			Else;
+				//Report i, seqStnInds[i], (seqPassStarts[i]-seqPassStarts[i-1]).ToHours(), seqPassStarts[i].ConvertToCalendarDate(), seqPassEnds[i].ConvertToCalendarDate();
+				i++;
+			End;
+		End;	
+	End;
+
+	// now build visibility times output with what's left
+	For i = 0 to gndStns.Count-1;
+		aosTimes[i].Clear();
+		losTimes[i].Clear();
+
+		curStnInds = seqStnInds.FindAll(i);
+
+		aosTimes[i].Dimension = curStnInds.Dimension;
+		losTimes[i].Dimension = curStnInds.Dimension;
+		
+		For j = 0 to curStnInds.Dimension - 1;
+			aosTimes[i][j] = seqPassStarts[curStnInds[j]];	
+			losTimes[i][j] = seqPassEnds[curStnInds[j]];
+		End;
+	End;
+
+
+	// now generate passes with randomized starts within the available windows
+	For i = 0 to gndStns.Count-1;
+
+		passSchedule[i].Resize(aosTimes[i].Dimension, 2);
+
+		For j = 0 to aosTimes[i].Dimension-1;
+
+			passAvailability = losTimes[i][j] - aosTimes[i][j];
+
+			If ( passAvailability >= nomPassLength) then;
+
+				// randomly generate something in the window	
+				passSchedule[i][j,0] = (aosTimes[i][j] + (passAvailability-nomPassLength).Scaled(rng.UniformDistribution(0,1))).ToDays();
+				passSchedule[i][j,1] = passSchedule[i][j,0] + nomPassLength.ToDays();
+
+			ElseIf (passAvailability <  nomPassLength and 
+				    passAvailability >= miniumPassLength) then;
+
+				// take what you can get;	
+				passSchedule[i][j,0] = aosTimes[i][j].ToDays();
+				passSchedule[i][j,1] = losTimes[i][j].ToDays();
+			Else;
+				// shouldn't get here
+				Report "There might be a problem";
+			End;
+
+			//Report i, j, aosTimes[i][j].ConvertToCalendarDate(), TimeSpan.FromDays(passSchedule[i][j,0]).ConvertToCalendarDate(), TimeSpan.FromDays(passSchedule[i][j,1]).ConvertToCalendarDate(), losTimes[i][j].ConvertToCalendarDate();
+		End;
+	End;
+	
+	
+	// restore spacecraft 
+	sc.Restore("initialState");
+	
+	
+	// restore original GS elevation masks
+	For i = 0 to gndStns.Count-1;
+		For j = 0 to gndStns[i].MaskElevation.Count-1;
+			
+			gndStns[i].MaskElevation[j] = stnMasks[i][j];
+		End;
+	End;
+	
+EndProcedure;

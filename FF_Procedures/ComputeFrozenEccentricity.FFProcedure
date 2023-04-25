@@ -1,0 +1,41 @@
+
+// ComputeFrozenEccentricity()
+// Computes the eccentricity for a Frozen orbit by solving the cubic equation of ecc,
+// given the Mean SMA and inlincation, includes J2 and J3 effects
+//
+// Inputs:
+//       - see below
+//
+// Dependencies:
+//     - None
+//
+// Assumptions:
+//     - Earth as central body
+//     - AOP = 90
+
+Define Procedure ComputeFrozenEccentricity(Variable   meanSMA,    /* Input/       - mean SMA of desired frozen Orbit  */
+										   Variable       inc,    /* Input/       - inclination of desired frozen Orbit  */
+										   Variable frozenEcc);   /*      /Output - frozen eccentricty, unitless  */
+	
+	// determine the mean ECC by solving the cubic equation
+	Variable meanMotion;
+	Variable radInc;
+
+	Array coeffs(4);
+	Matrix roots;
+	
+	radInc     = rad(inc);
+	meanMotion = sqrt(Earth.Mu / (meanSMA*meanSMA*meanSMA) );
+	
+	coeffs[0]  = -(3/4) * meanMotion * (Earth.Radius/meanSMA)^2 * Earth.J2 * sin(radInc)  * (1 - 5 * cos(radInc)^2);
+	coeffs[1]  =  (3/2) * meanMotion * (Earth.Radius/meanSMA)^3 * Earth.J3 * (1 - (35/4) * sin(radInc)^2 * cos(radInc)^2);
+	coeffs[2]  = -1*coeffs[0];
+	coeffs[3]  = (3/2) * meanMotion * (Earth.Radius/meanSMA)^3 * Earth.J3 * sin(radInc)^2  * ((5/4) * sin(radInc)^2 - 1);
+	
+	
+	roots = coeffs.PolynomialRoots();
+	
+	// take the minimum positive value
+	frozenEcc = abs(roots).Min();
+	
+EndProcedure;

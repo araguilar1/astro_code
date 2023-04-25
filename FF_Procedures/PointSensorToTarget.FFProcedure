@@ -1,0 +1,45 @@
+
+// PointSensorToTarget()
+// Points the sensor indicated by sensorInd on the observing spacecraft to the location of the
+// target spacecraft.  The sensor direction is changed, not the orientation of the spacecraft.
+// This procedure also sets the projection height of the sensor cone to the distanct to the 
+// target spacecraft
+//
+// Inputs:
+//       - see below
+//
+// Dependencies:
+//     - None
+//
+// Assumptions:
+//     - Assumes a sensor is defined on obsSC
+//
+
+
+Define Procedure PointSensorToTarget(Spacecraft     obsSC, 	/* Input/Output - Spacecraft with attached Sensor that will be pointed */
+									 Variable   sensorInd, 	/* Input/       - index of the sensor in the Sensors array */
+									 Spacecraft     tgtSC);	/* Input/       - the Spacecraft that is the target of the Sensor in question */
+
+	Vector obsToTgt;
+	Array BCSArray;
+
+	obsToTgt.Epoch = obsSC.Epoch;
+	obsToTgt.BuildVector(9, obsSC, tgtSC);
+	obsToTgt.DrawMethod = 0;
+
+	// Reference vector to SC Body Coordinate System via array
+	BCSArray = AttitudeConvert(0, 3, obsSC, obsToTgt.Element);
+	BCSArray = BCSArray.Normalized();
+
+	If (sensorInd >= obsSC.Sensors.Count);
+		ReportStatusMessage(0, "The provided sensor index (sensorInd) was higher than the senor count on obsSC.");
+	End;
+	
+	
+	// Align sensor to vector
+	obsSC.Sensors[sensorInd].BoresightUnitVector = BCSArray;
+
+	// update projection height
+	obsSC.Sensors[sensorInd].ProjectionHeight = obsSC.Range(tgtSC);
+	
+EndProcedure;

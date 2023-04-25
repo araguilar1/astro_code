@@ -1,0 +1,101 @@
+
+
+
+
+// VisibilityAndDoP()
+// Takes the input spacecraft and GNSS constelllation and checks mutual visibility, and computes all
+// Dilution of Precsion (DoP) values based on the GNSS satellites in view
+//
+// Inputs/Outputs: See Below
+//
+// Dependencies:
+//     - None
+//
+// Assumptions:
+//     - If sensors are attached to any of the spacecraft, this assumes the first sensor is
+//       used for visibility calcuations
+
+Define Procedure VisibilityAndDoP(	Spacecraft         sc,    /* Input/       -  the spacecraft for which DoP will be calculated  */
+									Formation        gnss,    /* Input/       -  the GNSS formation used for the DoP calculations*/
+									Array    gnss_in_view,    /*      /Output -  array of 0/1 for each GNSS satellite in view*/
+									Array      DoP_values);   /*      /Output -  array of DoP values [GDoP, HDoP, PDoP, VDoP, TDoP]*/
+	
+	Variable i;
+	Variable err_cnt;
+	Array los_vec;
+	List<VisibilitySegment> vis;
+	Matrix g;
+	Matrix h;
+	
+	If (gnss.Count == 0);
+		Diagnostics.ReportErrorMessage(0, "The GNSS constellation does not contain any spacecraft.");
+		ExitProcedure;
+	End;
+	
+	If (vis.Count != gnss.Count);
+		// need to re/configure
+		vis.Clear();
+		vis.Count = gnss.Count;
+		
+		For i = 0 to gnss.Count-1;
+			
+			If (gnss[i].Sensors.Count == 0);
+				vis[i].SetObserver(gnss[i]);
+			Else;
+				vis[i].SetObserver(gnss[i].Sensors[0]);
+			End;
+			If (sc.Sensors.Count == 0);
+				vis[i].SetTarget(sc);
+			Else;
+				vis[i].SetTarget(sc.Sensors[0]);
+			End;
+				
+			vis[i].CelestialObjectOccultationModel = 1;
+			vis[i].AddOccultingBody(Earth);
+			
+			If (sc.CentralBody != "Earth");
+				vis[i].AddOccultingBody(sc.CentralBodyObject);
+			End;
+
+		End;
+	End;
+	
+	err_cnt = 0;
+	DoP_values.Fill(0,5);
+	gnss_in_view.Fill(0,gnss.Count);
+	
+	g.Resize(0,0);
+	
+	// now check instantaneous visibility and compute DOP
+	For i = 0 to gnss.Count-1;
+		
+		If ( vis[i].Visibility(sc.Epoch) );
+			
+			gnss_in_view[i] = 1;
+			
+			// line-of-sight vectors
+			los_vec = gnss[i].VectorToObject(sc);
+			
+			g.Resize(g.RowCount+1, 4);
+			
+			g[g.RowCount-1,:] = [los_vec/los_vec.Norm(), 1];
+		End;
+	End;
+	
+	Try sending ErrorCount to err_cnt;
+		h = (g.Transpose()*g).Inverse();
+	End;
+	
+	If (err_cnt != 0);
+		Diagnostics.ReportErrorMessage(0, "Error solving for Dilution of Precision, the matrix was not invertible.");
+		ExitProcedure;
+	End;
+	
+	// DoP values
+	DoP_values[0] = sqrt(h[0,0] + h[1,1] + h[2,2] + h[3,3]);
+	DoP_values[1] = sqrt(h[0,0] + h[1,1]);	   
+	DoP_values[2] = sqrt(h[0,0] + h[1,1] + h[2,2]);
+	DoP_values[3] = sqrt(h[2,2]);
+	DoP_values[4] = sqrt(h[3,3]);
+	
+EndProcedure;

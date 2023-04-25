@@ -1,0 +1,75 @@
+
+// ConvertRaDecToFrame()
+// Converts Right Ascension and Declination angles from one reference frame to another
+// Currently only TEME and MJ2000 are supported.  Conversion works for both Topocentric 
+// and Geocentric RA/DEC pairs
+//
+// Inputs:
+//       - see below
+//
+// Dependencies:
+//     - None
+//
+// Assumptions:
+//     - None
+
+
+Define Procedure ConvertRaDecToFrame(	TimeSpan      epoch, 	/* Input/       - epoch of the RA/DEC measurements  */
+										String   from_frame, 	/* Input/       - String indicating reference frame of input data (TEME or MJ2000)  */
+										String     to_frame, 	/* Input/       - String indicating reference frame of output data (TEME or MJ2000)  */
+										Array     in_ra_dec, 	/* Input/       - input angles in radians [ra, dec]  */
+										Array    out_ra_dec);	/*      /Output - angles converted to output frame in radians [ra, dec]  */
+	
+
+
+	Array unit_vector;
+	Variable ra;
+	Variable dec;
+	Variable from_val;
+	Variable to_val;
+	
+	If (from_frame == to_frame);
+		Diagnostics.ReportWarningMessage("The same frame is specified for both 'from' and 'to' frames.  No rotation was applied.");
+		ExitProcedure;
+	End;
+	
+	Switch (from_frame);
+		Case "TEME":
+			from_val = 6;
+			Break;
+		Case "MJ2000":
+			from_val = 1;
+			Break;
+		Default:
+			Diagnostics.ReportErrorMessage(0, "Invalid 'from' refrence frame specfied.  Valid options are 'TEME' or 'MJ2000'");
+			Break;
+	End;
+	
+	Switch (to_frame);
+		Case "TEME":
+			to_val = 6;
+			Break;
+		Case "MJ2000":
+			to_val = 1;
+			Break;
+		Default:
+			Diagnostics.ReportErrorMessage(0, "Invalid 'from' refrence frame specfied.  Valid options are 'TEME' or 'MJ2000'");
+			Break;
+	End;
+
+	
+	ra  = in_ra_dec[0];
+	dec = in_ra_dec[1];
+	
+  	unit_vector = {cos(dec)*cos(ra), cos(dec)*sin(ra), sin(dec)};
+	unit_vector = PositionConvert(from_val, to_val, epoch, unit_vector);
+	unit_vector = unit_vector.Normalized;
+	
+	out_ra_dec[1] = asin(unit_vector[2]);
+	out_ra_dec[0] = atan2( unit_vector[1],unit_vector[0]);
+	
+	
+	//put RA into 0 to 2PI
+	out_ra_dec[0] = AdjustToCyclicRange( 0, rad(360), out_ra_dec[0]);
+	
+EndProcedure;

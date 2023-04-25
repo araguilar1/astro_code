@@ -1,0 +1,2476 @@
+/////////////////////////////////////////////////////////////////////
+// This set of Plot Procedures contains the following:
+//    - GetSeriesColorPalette()
+//    - ConfigureColorTheme()
+//    - ConfigurePlotWindow()
+//    - MakePlots()
+//    - MakePlot()
+//    - FormatAllSeries()
+//    - FormatSingleSeries()
+//    - AddDataLabelsToSeries()
+//    - UpdatePlotLegend()
+//    - SetAxisLimits()
+//    - SetAxesLimits()
+//    - GetAxisMinMax()
+//    - MakeBarChart()
+//    - MakeStackedBarChart()
+//    - MakePolarPlot()
+//    - MakePolarPlots()
+//    - AddPolynomialLine()
+//    - AddVerticalLine()
+//    - AddHorizontalLine()
+//    - AddCircleToPolarPlot()
+//    - AddDataLabelToSinglePoint()
+//    - AddSinglePointToPlot()
+//    - AddFloatingLabelToPlot()
+//    - AddErrorBars()
+//    - BinData()
+//    - MakeGanttChart()
+//    - PlotsSeriesWithColorScaledByValue()
+//    - PlotScatterMeanAndEllipse()
+/////////////////////////////////////////////////////////////////////
+
+
+// GetSeriesColorPalette()
+// Retrieve the color values for the named series palette
+//
+// Inputs:
+//    colorPalette acceptable values are:
+//                      - default
+//                      - SeabornDeep
+//                      - SeabornDark
+//                      - Spectral
+//                      - Paired
+//                      - CoolWarm
+//                      - CubeHelix
+//                      - GreenToBlue
+//                      - PurpleToGreen
+//                      - PurpleToOrange
+//                      - RedToGreen
+//                      - YellowToRed
+//                      - Blues
+//                      - HLS
+//                      - HUSL      
+// Dependencies:
+//     - None
+//
+// Assumptions:
+//     - None
+
+Define Procedure GetSeriesColorPalette(String colorPalette,     /* Input/       - name of palette to use: see above for allowed values  */
+									   Array  seriesColors);    /*      /Output - series color values for palette (10 colors per palette) */
+	
+	Variable i;
+	Matrix seriesRGBColors;
+	
+	colorPalette = colorPalette.ToLower;
+	
+	If (colorPalette == "husl");
+		seriesRGBColors = [ 0.9677975592919913,  0.44127456009157356, 0.5358103155058701;
+							0.8616090647292522,  0.536495730113334,   0.19548899031476086;
+							0.6804189127793346,  0.6151497514677574,  0.19405452111445337;
+							0.46810256823426105, 0.6699492535792404,  0.1928958739904499;
+							0.20125317221201128, 0.6907920815379025,  0.47966761189275336;
+							0.21044753832183283, 0.6773105080456748,  0.6433941168468681;
+							0.2197995660828324,  0.6625157876850336,  0.7732093159317209;
+							0.433280341176423,   0.6065273407962815,  0.9585467098271748;
+							0.8004936186423958,  0.47703363533737203, 0.9579547196007522;
+							0.962272393509669,   0.3976451968965351,  0.8008274363432775];
+		
+	ElseIf (colorPalette == "hls");
+		seriesRGBColors = [ 0.86,                0.3712,              0.33999999999999997;
+							0.86,                0.6832,              0.33999999999999997;
+							0.7247999999999999,  0.86,                0.33999999999999997;
+							0.41279999999999994, 0.86,                0.33999999999999997;
+							0.33999999999999997, 0.86,                0.5792000000000002;
+							0.33999999999999997, 0.8287999999999999,  0.86;
+							0.33999999999999997, 0.5167999999999995,  0.86;
+							0.4752000000000003,  0.33999999999999997, 0.86;
+							0.7871999999999999,  0.33999999999999997, 0.86;
+							0.86,                0.33999999999999997, 0.6207999999999999];
+		
+	ElseIf (colorPalette == "seaborndeep");
+		seriesRGBColors = [ 0.2980392156862745,  0.4470588235294118,  0.6901960784313725;
+							0.8666666666666667,  0.5176470588235295,  0.3215686274509804;
+							0.3333333333333333,  0.6588235294117647,  0.40784313725490196;
+							0.7686274509803922,  0.3058823529411765,  0.3215686274509804;
+							0.5058823529411764,  0.4470588235294118,  0.7019607843137254;
+							0.5764705882352941,  0.47058823529411764, 0.3764705882352941;
+							0.8549019607843137,  0.5450980392156862,  0.7647058823529411;
+							0.5490196078431373,  0.5490196078431373,  0.5490196078431373;
+							0.8,                 0.7254901960784313,  0.4549019607843137;
+							0.39215686274509803, 0.7098039215686275,  0.803921568627451];
+		
+	ElseIf (colorPalette == "seaborndark");
+		seriesRGBColors = [ 0.0,                 0.10980392156862745, 0.4980392156862745;
+							0.6941176470588235,  0.25098039215686274, 0.050980392156862744;
+							0.07058823529411765, 0.44313725490196076, 0.10980392156862745;
+							0.5490196078431373,  0.03137254901960784, 0.0;
+							0.34901960784313724, 0.11764705882352941, 0.44313725490196076;
+							0.34901960784313724, 0.1843137254901961,  0.050980392156862744;
+							0.6352941176470588,  0.20784313725490197, 0.5098039215686274;
+							0.23529411764705882, 0.23529411764705882, 0.23529411764705882;
+							0.7215686274509804,  0.5215686274509804,  0.0392156862745098;
+							0.0,                 0.38823529411764707, 0.4549019607843137];
+		
+	ElseIf (colorPalette == "paired");
+		seriesRGBColors = [ 0.6509803921568628,  0.807843137254902,   0.8901960784313725;
+							0.12156862745098039, 0.47058823529411764, 0.7058823529411765;
+							0.6980392156862745,  0.8745098039215686,  0.5411764705882353;
+							0.2,                 0.6274509803921569,  0.17254901960784313;
+							0.984313725490196,   0.6039215686274509,  0.6;
+							0.8901960784313725,  0.10196078431372549, 0.10980392156862745;
+							0.9921568627450981,  0.7490196078431373,  0.43529411764705883;
+							1.0,                 0.4980392156862745,  0.0;
+							0.792156862745098,   0.6980392156862745,  0.8392156862745098;
+							0.41568627450980394, 0.23921568627450981, 0.6039215686274509];
+		
+	ElseIf (colorPalette == "greentoblue");
+		seriesRGBColors = [ 0.9035447904652056,  0.9627681660899654,  0.881753171856978;
+							0.8436755094194541,  0.939038831218762,   0.8205920799692425;
+							0.7767474048442907,  0.9125259515570934,  0.7622145328719724;
+							0.6704498269896194,  0.8711880046136101,  0.7149711649365629;
+							0.5460207612456748,  0.8240522875816993,  0.7474048442906575;
+							0.41868512110726647, 0.7646289888504422,  0.7898500576701268;
+							0.29457900807381776, 0.6893656286043829,  0.8206689734717416;
+							0.19123414071510958, 0.5742099192618224,  0.7586620530565167;
+							0.09219530949634756, 0.47040369088811995, 0.7057900807381776;
+							0.03137254901960784, 0.36416762783544787, 0.6275586312956556];
+		
+	ElseIf (colorPalette == "purpletoorange");
+		seriesRGBColors = [ 0.6819684736639753,  0.33394848135332567, 0.024298346789696265;
+							0.8438292964244521,  0.47750865051903113, 0.06766628219915417;
+							0.9587081891580161,  0.6592848904267589,  0.2971164936562859;
+							0.9946943483275663,  0.8230680507497116,  0.5988465974625143;
+							0.9810073048827375,  0.9279507881584006,  0.8536716647443291;
+							0.9138023836985776,  0.9173394848135333,  0.9474048442906574;
+							0.7944636678200694,  0.7898500576701271,  0.886966551326413;
+							0.6403690888119955,  0.6059976931949251,  0.7797001153402539;
+							0.4681276432141484,  0.39254133025759325, 0.6468281430219147;
+							0.3144175317185698,  0.13794694348327569, 0.5098808150711265];
+		
+	ElseIf (colorPalette == "purpletogreen");
+		seriesRGBColors = [ 0.44198385236447524, 0.14855824682814303, 0.4921953094963475;
+							0.5730872741253364,  0.3853902345251826,  0.639830834294502;
+							0.7134948096885813,  0.5859284890426758,  0.7702422145328719;
+							0.8546712802768166,  0.766320645905421,   0.87520184544406;
+							0.9403306420607459,  0.906728181468666,   0.9420991926182237;
+							0.9155709342560554,  0.956247597078047,   0.904959630911188;
+							0.7803921568627453,  0.9121107266435987,  0.7568627450980394;
+							0.5633217993079587,  0.8069204152249136,  0.5547866205305654;
+							0.3044982698961938,  0.6408304498269897,  0.3480968858131488;
+							0.09550173010380622, 0.45059592464436754, 0.20492118415993849];
+		
+	ElseIf (colorPalette == "redtogreen");
+		seriesRGBColors = [ 0.8239138792772011,  0.16978085351787775, 0.15255670895809306;
+							0.9345636293733179,  0.38054594386774315, 0.24121491733948483;
+							0.9817762399077278,  0.6073817762399076,  0.3457900807381776;
+							0.9946943483275663,  0.8092272202998846,  0.48696655132641287;
+							0.9982314494425221,  0.9451749327181853,  0.6570549788542868;
+							0.9327950788158401,  0.9717031910803537,  0.6570549788542869;
+							0.7803921568627453,  0.906805074971165,   0.49942329873125735;
+							0.5771626297577857,  0.8186851211072665,  0.40761245674740487;
+							0.3415609381007305,  0.7127258746635909,  0.37362552864282966;
+							0.09196462898885044, 0.5776239907727797,  0.30411380238369856];
+		
+	ElseIf (colorPalette == "yellowtored");
+		seriesRGBColors = [ 1.0,                0.9490657439446367,   0.6754940407535563;
+							0.9982622068435217, 0.8946559015763168,   0.5544636678200692;
+							0.996078431372549,  0.8257900807381776,   0.4356170703575548;
+							0.996078431372549,  0.710634371395617,    0.31160322952710495;
+							0.9935717031910803, 0.6052902729719338,   0.25793156478277585;
+							0.9907420222991158, 0.46380622837370244,  0.20982698961937715;
+							0.980161476355248,  0.2890888119953864,   0.1601845444059977;
+							0.9063437139561706, 0.13554786620530565,  0.11884659746251441;
+							0.8072126105344098, 0.045182622068435215, 0.1316416762783545;
+							0.6745713187235679, 0.0,                  0.14901960784313725];
+		
+	ElseIf (colorPalette == "spectral");
+		seriesRGBColors = [ 0.8141484044598232,  0.2196847366397539, 0.3048058439061899;
+							0.9330257593233372,  0.3913110342176086, 0.27197231833910035;
+							0.9817762399077278,  0.6073817762399076, 0.3457900807381776;
+							0.9946943483275663,  0.8092272202998846, 0.48696655132641287;
+							0.9982314494425221,  0.9451749327181853, 0.6570549788542868;
+							0.9557862360630527,  0.9823144944252211, 0.6800461361014996;
+							0.8202998846597465,  0.9275663206459055, 0.6126874279123413;
+							0.5910034602076126,  0.835524798154556,  0.6442906574394464;
+							0.3600153787004998,  0.7161860822760476, 0.6655132641291811;
+							0.21299500192233756, 0.5114186851211072, 0.730795847750865];
+		
+	ElseIf (colorPalette == "coolwarm");
+		seriesRGBColors = [ 0.3383765114431373, 0.45281860883137254, 0.8793170768784313;
+							0.4570464785254902, 0.5940055499294118,  0.963029229690196;
+							0.5814861481882353, 0.7134505955294117,  0.9983143529411764;
+							0.7087196897176471, 0.8057213889294117,  0.9811168090470588;
+							0.8180564934117647, 0.8555896775450981,  0.9146376165490196;
+							0.9094595977529412, 0.8393864797647058,  0.8003313524235294;
+							0.9616447383764706, 0.7580291825411765,  0.6617823791647058;
+							0.963806056435294,  0.6341884145294118,  0.5137208491529413;
+							0.9182816725843137, 0.48417347218039214, 0.37779392507058823;
+							0.8301865219490197, 0.30473276355294115, 0.25489142806666665];
+		
+	ElseIf (colorPalette == "cubehelix");
+		seriesRGBColors = [ 0.09854228363950114, 0.07115215572295082, 0.16957891809124037;
+							0.09159726558869188, 0.20394337960213008, 0.29623965888210324;
+							0.09406611799930162, 0.3578871412608098,  0.2837709711722866;
+							0.23627685553553793, 0.46114369021199075, 0.19770731888985724;
+							0.49498740849493095, 0.4799034869159042,  0.21147789468974837;
+							0.7354526513473981,  0.4748861903571046,  0.40254094042448907;
+							0.8325928529853291,  0.5253446757844744,  0.6869376931865354;
+							0.7936920632275369,  0.6641337211433709,  0.9042311843062529;
+							0.7588424692372241,  0.8253990353420474,  0.9542699331220588;
+							0.8385645211683802,  0.9411869386771845,  0.9357655639413166];
+		
+	ElseIf (colorPalette == "blues");
+		seriesRGBColors = [ 0.8978854286812764,  0.939038831218762,   0.977362552864283;
+							0.828881199538639,   0.8937639369473279,  0.954725105728566;
+							0.7506343713956171,  0.8478431372549019,  0.9282122260668974;
+							0.6325259515570935,  0.7976470588235294,  0.8868742791234141;
+							0.491764705882353,   0.7219684736639754,  0.8547789311803152;
+							0.36159938485198,    0.6427374086889658,  0.8165782391387928;
+							0.24816608996539793, 0.5618915801614763,  0.7709803921568628;
+							0.15072664359861593, 0.4644521337946943,  0.7207843137254902;
+							0.07481737793156479, 0.3732564398308343,  0.6552095347943099;
+							0.03137254901960784, 0.28161476355247983, 0.5582622068435218];
+		
+	Else;
+		seriesRGBColors = [ 0.2980392156862745,  0.4470588235294118,  0.6901960784313725;
+							0.8666666666666667,  0.5176470588235295,  0.3215686274509804;
+							0.3333333333333333,  0.6588235294117647,  0.40784313725490196;
+							0.7686274509803922,  0.3058823529411765,  0.3215686274509804;
+							0.5058823529411764,  0.4470588235294118,  0.7019607843137254;
+							0.5764705882352941,  0.47058823529411764, 0.3764705882352941;
+							0.8549019607843137,  0.5450980392156862,  0.7647058823529411;
+							0.5490196078431373,  0.5490196078431373,  0.5490196078431373;
+							0.8,                 0.7254901960784313,  0.4549019607843137;
+							0.39215686274509803, 0.7098039215686275,  0.803921568627451];
+	End;
+	
+	seriesColors.Clear();
+	seriesColors.Dimension = seriesRGBColors.RowCount;
+	
+	For i = 0 to seriesRGBColors.RowCount-1;
+		seriesColors[i] = ColorTools.RGB(seriesRGBColors[i,0], seriesRGBColors[i,1], seriesRGBColors[i,2]);
+	End;
+	
+EndProcedure;
+
+// ConfigureColorTheme()
+// Updates the color palettes of a plot window that has been populated with data
+//
+// Inputs:
+//    backgroundPalette controls background, grid, interlace and font colors.
+//                      acceptable values are:
+//                      - white
+//                      - lightGray
+//                      - mediumGray
+//                      - darkBlueGray
+//                      - dark
+//
+//    colorPalette      controls the plot series colors.  Acceptable values are:
+//                      - default
+//                      - SeabornDeep
+//                      - SeabornDark
+//                      - Spectral
+//                      - Paired
+//                      - CoolWarm
+//                      - CubeHelix
+//                      - GreenToBlue
+//                      - PurpleToGreen
+//                      - PurpleToOrange
+//                      - RedToGreen
+//                      - YellowToRed
+//                      - Blues
+//                      - HLS
+//                      - HUSL
+//   
+// Dependencies:
+//     - GetSeriesColorPalette()
+//
+// Assumptions:
+//     - Assumes Plot Window has been populated with data
+
+Define Procedure ConfigureColorTheme(PlotWindow         pw,   /* Input/Output - plot window whose color theme is to be adjusted  */
+									 String bgColorPalette,   /* Input/       - name of background color palette to use: see above for allowed values  */
+									 String   colorPalette);  /* Input/       - name of series color palette to use: see above for allowed values  */
+	
+	Variable i;
+	Variable ind;
+	
+	
+	Variable bgColor;
+	Variable fontColor;
+	Variable interlaceColor;
+	Variable gridColor;
+	
+	Array seriesColors;
+	
+	// set overall color parameters
+	bgColorPalette = bgColorPalette.ToLower;
+	If (bgColorPalette == "white");
+		bgColor        = ColorTools.White;
+		fontColor      = ColorTools.Black;
+		gridColor      = ColorTools.LightGray;
+		interlaceColor = ColorTools.RGB(173/255, 216/255, 230/255);
+	ElseIf (bgColorPalette == "lightgray");
+		bgColor        = ColorTools.LightGray;
+		fontColor      = ColorTools.DarkSlateGray;
+		gridColor      = ColorTools.DarkGray;
+		interlaceColor = ColorTools.RGB( 75/255,  75/255,  75/255);
+	ElseIf (bgColorPalette == "mediumgray");
+		bgColor        = ColorTools.DarkGray;
+		fontColor      = ColorTools.DarkSlateGray;
+		gridColor      = ColorTools.RGB( 35/255, 57/255, 57/255);
+		interlaceColor = ColorTools.DarkSlateGray;
+	ElseIf (bgColorPalette == "darkbluegray");
+		bgColor        = ColorTools.RGB( 39/255,  39/255,  48/255);
+		fontColor      = ColorTools.RGB(188/255, 188/255, 231/255);
+		gridColor      = ColorTools.RGB( 85/255,  85/255, 104/255);
+		interlaceColor = ColorTools.RGB( 75/255,  75/255,  92/255);
+	ElseIf (bgColorPalette == "dark");
+		bgColor        = ColorTools.RGB( 39/255,  39/255,  39/255);
+		fontColor      = ColorTools.RGB(188/255, 188/255, 190/255);
+		gridColor      = ColorTools.RGB( 85/255,  85/255,  85/255);
+		interlaceColor = ColorTools.RGB( 75/255,  75/255,  75/255);
+	Else;
+		Diagnostics.ReportWarningMessage("Invalid Background Palette specified.  Using White palette.");
+		bgColor        = ColorTools.White;
+		fontColor      = ColorTools.Black;
+		gridColor      = ColorTools.LightGray;
+		interlaceColor = ColorTools.RGB(173/255, 216/255, 230/255);
+	End;
+	
+	// get plot series colors
+	Call GetSeriesColorPalette(colorPalette, seriesColors);
+	
+	
+	// now set actual plot values
+	pw.BackgroundColor        = bgColor;
+	pw.PlotAreaColor          = bgColor;
+	pw.InterlacedColor        = interlaceColor;
+	
+	pw.PlotTitle.Color        = fontColor;
+	pw.PlotSubTitle.Color     = fontColor;
+	If (pw.PlotType == "PolarPlot");
+		pw.ThetaAxis.LabelsColor  = fontColor;
+		pw.ThetaAxis.Title.Color  = fontColor;
+		pw.ThetaAxis.GridColor    = gridColor;
+		pw.RAxis.LabelsColor      = fontColor;
+		pw.RAxis.Title.Color      = fontColor;
+		pw.RAxis.GridColor        = gridColor;
+	Else;
+		
+		pw.XAxis.LabelsColor      = fontColor;
+		pw.XAxis.Title.Color      = fontColor;
+		pw.XAxis.GridColor        = gridColor;
+		pw.YAxis.LabelsColor      = fontColor;
+		pw.YAxis.Title.Color      = fontColor;
+		pw.YAxis.GridColor        = gridColor;
+	End;
+	pw.Legend.BorderColor     = fontColor;
+	pw.Legend.TextColor       = fontColor;
+	pw.Legend.BackgroundColor = bgColor;
+	
+
+	// set series data label colors
+	For i = 0 to pw.Series.Count-1;
+		pw.Series[i].DataLabelsBackgroundColor = bgColor;
+		pw.Series[i].DataLabelsTextColor       = fontColor;
+	End;
+	
+	// now set series values, cycling through series colors array, if not color palette is not the default
+	If (colorPalette != "default");
+		ind = 0;
+		For i = 0 to pw.Series.Count-1;
+			If (ind == seriesColors.Dimension);
+				ind = 0;
+			End;
+			
+			pw.Series[i].MarkersColor = seriesColors[ind];
+			pw.Series[i].LineColor    = seriesColors[ind];
+			ind++;
+		End;
+	End;
+	
+EndProcedure;
+
+
+// ConfigurePlotWindow()
+// Configures all aspects of the look and feel of a plot window that has been populated with plot series data
+// Inputs:
+//       - see below
+//
+// Dependencies:
+//     - ConfigureColorTheme()
+//     - GetSeriesColorPalette()
+//
+// Assumptions:
+//     - Assumes Plot Window has been populated with data
+
+Define Procedure ConfigurePlotWindow(PlotWindow          pw,   /* Input/Output - plot window whose configuration is to be adjusted  */
+									 Variable     lineWidth,   /* Input/       - Line width    (0 to turn off)  */
+									 Variable    markerSize,   /* Input/       - Marker size   (0 to turn off)  */
+									 Variable titleFontSize,   /* Input/       - Title Font size (other lables/titles are scaled from this)  */
+									 String        fontFace,   /* Input/       - Font Face (the name of any font installed in windows)  */
+									 String  bgColorPalette,   /* Input/       - name of background color palette to use: see above for allowed values  */
+									 String    colorPalette);  /* Input/       - name of series color palette to use: see above for allowed values  */
+
+	Variable i = 0;
+	
+	pw.BeginBatchUpdate();
+	
+	pw.PlotTitle.Font.Size        = titleFontSize;
+	pw.PlotTitle.Font.Typeface    = fontFace;
+	pw.PlotSubTitle.Font.Bold     = 1;
+	pw.PlotSubTitle.Font.Size     = round(titleFontSize*0.69);
+	pw.PlotSubTitle.Font.Typeface = fontFace;
+	If (pw.PlotType == "PolarPlot");
+		
+		pw.ThetaAxis.LabelsFont.Bold      = 1;
+		pw.ThetaAxis.LabelsFont.Size      = round(titleFontSize*0.45);
+		pw.ThetaAxis.LabelsFont.Typeface  = fontFace;
+		pw.ThetaAxis.Title.Visible        = 0;
+		pw.ThetaAxis.Title.Font.Bold      = 1;
+		pw.ThetaAxis.Title.Font.Size      = round(titleFontSize*0.45);
+		pw.ThetaAxis.Title.Font.Typeface  = fontFace;
+		pw.ThetaAxis.LabelsFormat         = "#,##0.####";
+		pw.RAxis.LabelsFont.Bold          = 1;
+		pw.RAxis.LabelsFont.Size          = round(titleFontSize*0.45);
+		pw.RAxis.LabelsFont.Typeface      = fontFace;
+		pw.RAxis.Title.Font.Bold          = 1;
+		pw.RAxis.Title.Font.Size          = round(titleFontSize*0.45);
+		pw.RAxis.Title.Font.Typeface      = fontFace;
+		pw.RAxis.LabelsFormat             = "#,##0.####";	
+		// also move legend location for polar plots
+		pw.Legend.Location = 1;
+	Else;
+		
+		pw.XAxis.LabelsFont.Bold      = 1;
+		pw.XAxis.LabelsFont.Size      = round(titleFontSize*0.69);
+		pw.XAxis.LabelsFont.Typeface  = fontFace;
+		pw.XAxis.Title.Visible        = 1;
+		pw.XAxis.Title.Font.Bold      = 1;
+		pw.XAxis.Title.Font.Size      = round(titleFontSize*0.69);
+		pw.XAxis.Title.Font.Typeface  = fontFace;
+		pw.XAxis.LabelsFormat         = "#,##0.####";
+		pw.YAxis.LabelsFont.Bold      = 1;
+		pw.YAxis.LabelsFont.Size      = round(titleFontSize*0.69);
+		pw.YAxis.LabelsFont.Typeface  = fontFace;
+		pw.YAxis.Title.Font.Bold      = 1;
+		pw.YAxis.Title.Font.Size      = round(titleFontSize*0.69);
+		pw.YAxis.Title.Font.Typeface  = fontFace;
+		pw.YAxis.LabelsFormat         = "#,##0.####";
+		
+		// only do interlacing with x-y plots
+		pw.InterlacedDirection        = 1;
+	End;
+	
+	
+	pw.HighQualityRendering       = 1;
+	pw.Legend.BorderVisible       = 1;
+	pw.Legend.Font.Bold           = 1;
+	pw.Legend.Font.Size           = round(titleFontSize*0.69);
+	pw.Legend.Font.Typeface       = fontFace;
+	pw.UseMonitorMode             = 0;
+	
+	If (pw.Series.Count == 1) then;
+		pw.Legend.Visible        = 0;
+	Else;
+		pw.Legend.Visible        = 1;
+	End;
+	
+	Variable markerVisible;
+	Variable lineVisible;
+	
+	If (markerSize > 0);
+		markerVisible = 1;
+	Else;
+		markerVisible = 0;
+		markerSize    = 1;
+	End;
+	If (lineWidth > 0);
+		lineVisible = 1;
+	Else;
+		lineVisible = 0;
+		lineWidth    = 1;
+	End;
+	
+	For i = 0 to pw.Series.Count-1;
+		If (pw.Series[i] IsType PlotPolynomialSeries);
+			pw.Series[i].MarkersVisible = 0;
+		Else;
+			pw.Series[i].MarkersVisible = markerVisible;
+			pw.Series[i].MarkersSize    = markerSize;
+		End;
+		//If (pw.PlotType != "PolarPlot");
+			pw.Series[i].LineVisible    = lineVisible;
+		//End;
+		pw.Series[i].LineWidth      = lineWidth;
+		pw.Series[i].DataLabelsFont.Typeface = fontFace;
+	End;
+	
+
+	Call ConfigureColorTheme(pw, bgColorPalette, colorPalette);
+	
+	pw.EndBatchUpdate();
+	
+EndProcedure;
+
+
+
+// MakePlots()
+// This procedure will create a single plot using all the x/y array pairs provided as series data
+// Axis Minimum and Maximum values can be set to automatic with -999 for each max/min or also empty arrays
+//
+// Inputs/Outputs: (See Below)
+//
+// Dependencies:
+//     - None
+//
+// Assumptions:
+//     - Assumes Plot Window has been populated with data
+
+Define Procedure MakePlots(PlotWindow     pw,  /* Input/Output - plot window to be updated  */
+	                       List<Array> xvals,  /* Input/       - x-ordinate data  */
+						   List<Array> yvals,  /* Input/       - y-ordinate data  */
+	                       String     xlabel,  /* Input/       - X-Axis title  */
+	                       String     ylabel,  /* Input/       - Y-Axis title  */
+	                       Array     xMinMax,  /* Input/       - X axis limits array {xMin, xMax} (-999 or empty array for auto sizing)  */
+	                       Array     yMinMax,  /* Input/       - Y axis limits array {xMin, xMax} (-999 or empty array for auto sizing)  */
+	                       String      title,  /* Input/       - Plot Title        (blank string to hide)  */
+						   String   subTitle); /* Input/       - Plot SubTitle     (blank string to hide)  */
+	
+	Variable i;
+	List<PlotScatterSeries> pss1;
+	
+	pw.MaxPoints = 1000000;
+	pw.BeginBatchUpdate();
+	
+	pss1.Clear();
+	
+	// handle the case where one x-value array is passed with multiple y-value arrays
+	If (xvals.Count == 1 and yvals.Count> xvals.Count);
+		
+		pss1.Count = yvals.Count;
+		
+		For i = 0 to yvals.Count-1;
+			If (xvals[0].Dimension == yvals[i].Dimension);
+				pss1[i].AddPoints(xvals[0], yvals[i]);
+				pw.AddSeries(pss1[i]);
+			Else;
+				Diagnostics.ReportWarningMessage( "X Value array and Y Value array have different dimensions.");
+			End;
+		End;
+	ElseIf (xvals.Count == yvals.Count);
+		pss1.Count = xvals.Count;
+		
+		For i = 0 to xvals.Count-1;
+			pss1[i].AddPoints(xvals[i], yvals[i]);
+			pw.AddSeries(pss1[i]);
+		End;
+	Else;
+		Diagnostics.ReportErrorMessage(0, "X- and Y-Value lists have different counts.  Only n-by-n or 1-by-n lists are supported.");
+	End;
+	
+
+	If (title == "");
+		pw.PlotTitle.Visible = 0;
+	Else;
+		pw.PlotTitle.Visible = 1;
+		pw.PlotTitle.Text    = title;
+	End;
+	If (subTitle == "");
+		pw.PlotSubTitle.Visible = 0;
+	Else;
+		pw.PlotSubTitle.Visible = 1;
+		pw.PlotSubTitle.Text    = subTitle;
+	End;
+	
+	If (xlabel == "");
+		pw.XAxis.Title.Visible = 0;
+	Else;
+		pw.XAxis.Title.Visible = 1;
+		pw.XAxis.Title.Text    = xlabel;
+	End;
+	If (ylabel == "");
+		pw.YAxis.Title.Visible = 0;
+	Else;
+		pw.YAxis.Title.Visible = 1;
+		pw.YAxis.Title.Text    = ylabel;
+	End;
+	
+	If (xMinMax.Dimension == 2);
+		If (xMinMax[0] != -999) then;
+			pw.XAxis.MinimumValue = xMinMax[0];
+		End;
+		If (xMinMax[1] != -999) then;
+			pw.XAxis.MaximumValue = xMinMax[1];
+		End;
+	End;
+	If (yMinMax.Dimension == 2);
+		If (yMinMax[0] != -999) then;
+			pw.YAxis.MinimumValue = yMinMax[0];
+		End;
+		If (yMinMax[1] != -999) then;
+			pw.YAxis.MaximumValue = yMinMax[1];
+		End;
+	End;
+	pw.EndBatchUpdate();
+
+EndProcedure;
+
+// MakePlot()
+// This procedure will create a single plot using all the x/y array pairs provided as series data
+// Axis Minimum and Maximum values can be set to automatic with -999 for each max/min or also empty arrays
+//
+// Inputs/Outputs: (See Below)
+//
+//
+// Dependencies:
+//     - None
+//
+// Assumptions:
+//     - Assumes Plot Window has been populated with data
+
+Define Procedure MakePlot(PlotWindow    pw,   /* Input/Output - plot window to be updated  */
+	                       Array     xvals,	  /* Input/       - x-ordinate data  */
+						   Array     yvals,	  /* Input/       - y-ordinate data  */
+	                       String   xlabel,   /* Input/       - X-Axis title  */
+	                       String   ylabel,	  /* Input/       - Y-Axis title  */
+	                       Array   xMinMax,   /* Input/       - X axis limits array {xMin, xMax} (-999 or empty array for auto sizing)  */
+	                       Array   yMinMax,   /* Input/       - Y axis limits array {xMin, xMax} (-999 or empty array for auto sizing)  */
+	                       String    title,	  /* Input/       - Plot Title        (blank string to hide)  */
+						   String subTitle);  /* Input/       - Plot SubTitle     (blank string to hide)  */
+	
+	List<PlotScatterSeries> pss1;
+	
+	pw.MaxPoints = 1000000;
+	pw.BeginBatchUpdate();
+	
+	pss1.Clear();
+	pss1.Count = 1;
+	pss1[0].AddPoints(xvals, yvals);
+	pw.AddSeries(pss1[0]);
+
+	If (title == "");
+		pw.PlotTitle.Visible = 0;
+	Else;
+		pw.PlotTitle.Visible = 1;
+		pw.PlotTitle.Text    = title;
+	End;
+	If (subTitle == "");
+		pw.PlotSubTitle.Visible = 0;
+	Else;
+		pw.PlotSubTitle.Visible = 1;
+		pw.PlotSubTitle.Text    = subTitle;
+	End;
+	
+	If (xlabel == "");
+		pw.XAxis.Title.Visible = 0;
+	Else;
+		pw.XAxis.Title.Visible = 1;
+		pw.XAxis.Title.Text    = xlabel;
+	End;
+	If (ylabel == "");
+		pw.YAxis.Title.Visible = 0;
+	Else;
+		pw.YAxis.Title.Visible = 1;
+		pw.YAxis.Title.Text    = ylabel;
+	End;
+	
+	If (xMinMax.Dimension == 2);
+		If (xMinMax[0] != -999) then;
+			pw.XAxis.MinimumValue = xMinMax[0];
+		End;
+		If (xMinMax[1] != -999) then;
+			pw.XAxis.MaximumValue = xMinMax[1];
+		End;
+	End;
+	If (yMinMax.Dimension == 2);
+		If (yMinMax[0] != -999) then;
+			pw.YAxis.MinimumValue = yMinMax[0];
+		End;
+		If (yMinMax[1] != -999) then;
+			pw.YAxis.MaximumValue = yMinMax[1];
+		End;
+	End;
+	
+	pw.EndBatchUpdate();
+
+EndProcedure;
+
+// FormatAllSeries()
+// This procdure sets the line and marker size for all plot series and sets the labels into the legend
+// The dimension of the String Array labels must match the number of seriese in the Plot Window
+//
+// Dependencies:
+//     - None
+//
+// Assumptions:
+//     - Assumes Plot Window has been populated with data
+
+Define Procedure FormatAllSeries(PlotWindow        pw,  /* Input/Output - plot window to be updated  */
+								 Variable  markerSize,  /* Input/       - series marker size (zero to hide)  */
+								 Variable    lineSize,  /* Input/       - series line width  (zero to hide)  */
+								 StringArray   labels); /* Input/       - Series labels for legend (must match dimension of series)  */
+													   
+	Variable i;										   
+	Variable markerVisible;							   
+	Variable lineVisible;							   
+													   
+	pw.BeginBatchUpdate();
+	
+	If (markerSize > 0);
+		markerVisible = 1;
+	Else;
+		markerVisible = 0;
+		markerSize    = 1;
+	End;
+	If (lineSize > 0);
+		lineVisible = 1;
+	Else;
+		lineVisible = 0;
+		lineSize    = 1;
+	End;
+	
+	For i = 0 to pw.Series.Count-1;
+		If (pw.Series[i] IsType PlotPolynomialSeries);
+			pw.Series[i].MarkersVisible = 0;
+			pw.Series[i].MarkersSize    = 0;
+		Else;
+			pw.Series[i].MarkersVisible = markerVisible;
+			pw.Series[i].MarkersSize    = markerSize;
+		End;
+		pw.Series[i].LineVisible    = lineVisible;
+		pw.Series[i].LineWidth      = lineSize;
+		pw.Series[i].Label          = labels[i];
+	End;
+	
+	pw.EndBatchUpdate();
+	
+EndProcedure;
+
+
+// FormatSingleSeries()
+// This procdure sets the line and marker size a single plot series at the specfied index and sets the label into the legend
+//
+// Dependencies:
+//     - None
+//
+// Assumptions:
+//     - Assumes Plot Window has been populated with data
+
+Define Procedure FormatSingleSeries(PlotWindow         pw,  /* Input/Output - plot window to be updated  */
+								    Variable    seriesInd,  /* Input/       - array index of series to be updated  */
+									Variable   markerSize,  /* Input/       - series marker size (zero to hide)  */
+									Variable     lineSize,  /* Input/       - series line width (zero to hide)  */
+									Variable  seriesColor,  /* Input/       - series line width (-999 to hide)  */
+									String          label); /* Input/       - label to place in Legend (blank string to hide) */
+														  
+	pw.BeginBatchUpdate();								  
+														  
+	If (markerSize > 0);								  
+		pw.Series[seriesInd].MarkersVisible = 1;
+		pw.Series[seriesInd].MarkersSize    = markerSize;
+	Else;
+		pw.Series[seriesInd].MarkersVisible = 0;
+	End;
+	
+	If (lineSize > 0);
+		pw.Series[seriesInd].LineVisible    = 1;
+		pw.Series[seriesInd].LineWidth      = lineSize;
+	Else;
+		pw.Series[seriesInd].LineVisible    = 0;
+	End;
+	
+	If (seriesColor != -999);
+		pw.Series[seriesInd].LineColor    = seriesColor;
+		pw.Series[seriesInd].MarkersColor = seriesColor;
+	End;
+	
+	If (label == "");
+		pw.Series[seriesInd].ShowInLegend = 0;
+	Else;
+		pw.Series[seriesInd].Label   = label;
+	End;
+	
+	pw.EndBatchUpdate();
+	
+EndProcedure;
+
+// AddDataLabelsToSeries()
+// Adds user-defined labels to a single data series on a plot
+//
+// Inputs/Outputs: See Below
+//
+// Dependencies:
+//     - None
+//
+// Assumptions:
+//     - Assumes Plot Window has been populated with data
+
+Define Procedure AddDataLabelsToSeries(PlotWindow                pw,  /* Input/Output - plot window to be updated  */
+				   					   Variable           seriesInd,  /* Input/       - array index of series to be updated  */
+									   StringArray seriesDataLabels); /* Input/       - data series labels (dimension must match dimension of series) */
+	
+	Variable i;
+	
+	If (seriesInd >= pw.Series.Count);
+		
+		Diagnostics.ReportWarningMessage( "Unable to add Data Labels to Series.  Requested series index of "+seriesInd.Format("%d")+" exceeds the PlotWindow series dimension of "+pw.Series.Count.Format("%d")+" .");
+		ExitProcedure;
+	End;
+	
+	
+	If (pw.Series[seriesInd] IsType PlotScatterSeries);
+	
+		Alias pwSeries = (pw.Series[seriesInd] AsType PlotScatterSeries);
+	
+		If (pwSeries.DataLabels.Count != seriesDataLabels.Dimension);
+			Diagnostics.ReportWarningMessage( "Unable to add Data Labels to Series.  Requested series dimension of "+
+			                    			  pwSeries.DataLabels.Count.Format("%d")+" does not match the dimension of "+seriesDataLabels.Dimension.Format("%d")+" for the supplied labels.");
+			ExitProcedure;
+		End;
+		
+		pw.BeginBatchUpdate();
+		
+		For i = 0 to seriesDataLabels.Dimension-1;
+			pwSeries.DataLabels[i] = seriesDataLabels[i];
+		End;
+		pwSeries.DataLabelsVisible = 1;
+		pwSeries.DataLabelsStyle   = 2;
+		
+		pwSeries.DataLabelsFont.Bold = 1;
+		pwSeries.DataLabelsFont.Size += 4;
+		pw.EndBatchUpdate();
+		
+	Else;
+		Diagnostics.ReportWarningMessage( "Unable to add Data Labels to Series.  The requested series does not evaluate to type PlotScatterSeries.");
+	End;
+	
+EndProcedure;
+
+
+// UpdatePlotLegend()
+// This procedure updates the series names for all series in the plot
+//
+// Dependencies:
+//     - None
+//
+// Assumptions:
+//     - Assumes Plot Window has been populated with data
+
+Define Procedure UpdatePlotLegend(PlotWindow            pw,  /* Input/Output - plot window to be updated  */ 
+								  StringArray seriesLabels); /* Input/       - Series labels for legend (must match dimension of series)  */
+
+	Variable i;
+	
+	If (pw.Series.Count != seriesLabels.Dimension);
+		Diagnostics.ReportWarningMessage( "Labels count does not match series count.  Skipping update");
+		ExitProcedure;
+	End;
+	
+	pw.BeginBatchUpdate();
+	For i = 0 to pw.Series.Count-1;
+		
+		pw.Series[i].Label = seriesLabels[i];
+	End;
+	pw.EndBatchUpdate();
+	
+EndProcedure;
+
+
+
+
+// SetAxisLimits()
+// This procedure updates the maximum and/or minimum values of a specfied plot axis
+//
+// Dependencies:
+//     - None
+//
+// Assumptions:
+//     - None
+
+Define Procedure SetAxisLimits(	PlotWindow        pw,  /* Input/Output - plot window to be updated  */ 
+								String     axisToSet,  /* Input/       - String indicating which axis to set ('X', 'Y', or 'R')  */
+								Array     axisLimits); /* Input/       - Array of the min/max values (-999 for either to leave as automatic)  */
+
+	pw.BeginBatchUpdate();
+	
+	If (axisToSet.ToUpper == "X");
+		
+		If (axisLimits[0] != -999);
+			pw.XAxis.MinimumValue = axisLimits[0];
+		End;
+		If (axisLimits[1] != -999);
+			pw.XAxis.MaximumValue = axisLimits[1];
+		End;
+		
+	ElseIf (axisToSet.ToUpper == "Y");
+		If (axisLimits[0] != -999);
+			pw.YAxis.MinimumValue = axisLimits[0];
+		End;
+		If (axisLimits[1] != -999);
+			pw.YAxis.MaximumValue = axisLimits[1];
+		End;
+	ElseIf (axisToSet.ToUpper == "R");
+		
+		If (axisLimits[0] != -999);
+			pw.RAxis.MinimumValue = axisLimits[0];
+		End;
+		If (axisLimits[1] != -999);
+			pw.RAxis.MaximumValue = axisLimits[1];
+		End;
+		
+	Else;
+		Diagnostics.ReportWarningMessage("Invalid Axis specified; allowable values are 'X', 'Y' or 'R'.  Skipping update.");
+	End;
+		
+	pw.EndBatchUpdate();
+	
+EndProcedure;
+
+
+// SetAxesLimits()
+// This procedure updates the maximum and/or minimum values of both the X and Y axes of the given PlotWindow
+//
+// Dependencies:
+//     - None
+//
+// Assumptions:
+//     - None
+
+Define Procedure SetAxesLimits(	PlotWindow         pw,  /* Input/Output - plot window to be updated  */ 
+								Array     xAxisLimits,  /* Input/       - Array of the X-Axis min/max values (-999 for either to leave as automatic)  */
+								Array     yAxisLimits); /* Input/       - Array of the Y-Axis min/max values (-999 for either to leave as automatic)  */
+
+	pw.BeginBatchUpdate();
+	
+	If (xAxisLimits.Dimension == 2);
+		
+		If (xAxisLimits[0] != -999);
+			pw.XAxis.MinimumValue = xAxisLimits[0];
+		End;
+		If (xAxisLimits[1] != -999);
+			pw.XAxis.MaximumValue = xAxisLimits[1];
+		End;
+	End;
+
+	If (yAxisLimits.Dimension == 2);
+		If (yAxisLimits[0] != -999);
+			pw.YAxis.MinimumValue = yAxisLimits[0];
+		End;
+		If (yAxisLimits[1] != -999);
+			pw.YAxis.MaximumValue = yAxisLimits[1];
+		End;
+	End;
+		
+	pw.EndBatchUpdate();
+	
+EndProcedure;
+
+
+
+
+// GetAxisMinMax()
+// This procedure returns the current minimum and maximum values of the specified axis of the given PlotWindow
+//
+// Dependencies:
+//     - None
+//
+// Assumptions:
+//     - None
+
+Define Procedure GetAxisMinMax(	PlotWindow          pw,  /* Input/       - plot window to be updated  */ 
+								String     axis_to_get,  /* Input/       - String indicator of axis, valid values are X, Y, or R */
+								Array     axis_min_max); /*      /Output - Array of the Y-Axis min/max values (-999 for either to leave as automatic)  */
+
+	Variable i;
+	Variable j;
+	Variable min_val;
+	Variable max_val;
+	Variable axis_ind;
+	Array data_to_use;
+	
+	If (axis_to_get != "X" and 
+		axis_to_get != "Y" and 
+		axis_to_get != "R");
+		Diagnostics.ReportErrorMessage(0, "Invalid axis specification.  Please use X, Y or R.");
+	End;
+	
+	min_val  =  1e20;
+	max_val  = -1e20;
+	axis_ind = 1;
+	
+	If (axis_to_get == "X");
+		axis_ind = 0;
+	End;
+
+	For i = 0 to pw.Series.Count-1;
+		If (pw.Series[i] IsType PlotScatterSeries);
+		
+			If ((pw.Series[i] AsType PlotScatterSeries).Data.RowCount == 0);
+				Continue;
+			End;
+			
+			data_to_use = (pw.Series[i] AsType PlotScatterSeries).Data[:,axis_ind].ToArrayColumnMajor();
+			
+			If (data_to_use.FindFirst(-999) != -1);
+				j = 0;
+				While (j < data_to_use.Dimension);
+					If (data_to_use[j] == -999);
+						data_to_use.Erase(j);
+					Else;
+						j++;
+					End;
+				End;
+			End;
+			
+			max_val = max(data_to_use.Max(), max_val);
+			min_val = min(data_to_use.Min(), min_val);
+		End;
+	End;
+	
+	axis_min_max.Clear();
+	axis_min_max = {min_val, max_val};
+	
+EndProcedure;
+
+
+// MakeBarChart()
+// This procedure will create a bar chart using all the x/y array pairs provided as series data
+// Axis Minimum and Maximum values can be set to automatic with -999 for each max/min or also empty arrays
+// Inputs:
+//       - PlotWindow to be updated
+//       - Direction of bars (0 for horizontal, 1 for vertical)
+//       - Array of x-ordinate data
+//       - Array of y-ordinate data
+//       - X-Axis title
+//       - Y-Axis title
+//       - X axis limits array {xMin, xMax} (-999 or empty array for auto sizing)
+//       - Y axis limits array {yMin, yMax} (-999 or empty array for auto sizing)
+//       - Plot Title        (blank string to hide)
+//       - Plot SubTitle     (blank string to hide)
+//
+// Dependencies:
+//     - ConfigurePlotWindow()
+//     - ConfigureColorTheme()
+//     - GetSeriesColorPalette()
+//
+// Assumptions:
+//     - None
+
+Define Procedure MakeBarChart(PlotWindow         pw,  /* Input/Output - plot window to be updated  */
+							  Variable barDirection,  /* Input/       - Direction of bars (0 for horizontal, 1 for vertical)  */
+	                          Array           xvals,  /* Input/       - x-ordinate data  */
+						      Array           yvals,  /* Input/       - y-ordinate data  */
+	                          String         xlabel,  /* Input/       - X-Axis title  (blank string to hide) */
+	                          String         ylabel,  /* Input/       - Y-Axis title  (blank string to hide) */
+	                          Array         xMinMax,  /* Input/       - X axis limits array {xMin, xMax} (-999 or empty array for auto sizing)  */
+	                          Array         yMinMax,  /* Input/       - Y axis limits array {xMin, xMax} (-999 or empty array for auto sizing)  */
+	                          String          title,  /* Input/       - Plot Title        (blank string to hide)  */
+							  String       subTitle); /* Input/       - Plot SubTitle     (blank string to hide)  */
+	
+	Variable i;
+	List<PlotScatterSeries> pss1;
+	
+	pw.MaxPoints = 1000000;
+	pw.BeginBatchUpdate();
+	
+	If (xvals.Dimension > 1650);
+		Diagnostics.ReportErrorMessage( 1, "Unable to generate Bar Chart.  The number of data points exceeds 1650, which is the upper limit of this plotting library.");
+		ExitProcedure;
+	End;
+	
+	pss1.Clear();
+	pss1.Count = xvals.Dimension;
+	
+	For i = 0 to xvals.Dimension-1;
+		If (barDirection == 1);
+			//vertical
+			pss1[i].AddPoints({xvals[i], xvals[i]}, {0, yvals[i]});
+		Else;
+			// horizontal
+			pss1[i].AddPoints({0, yvals[i]}, {xvals[i], xvals[i]});
+		End;
+		pw.AddSeries(pss1[i]);
+	End;
+	
+	Call ConfigurePlotWindow(pw, 20, 0, 26, "Candara", "lightGray", "SeabornDeep");
+
+	// override marker visibility, line style, and line color
+	For i = 0 to pw.Series.Count-1 step 1;
+		pw.Series[i].MarkersVisible  = 0;
+		pw.Series[i].LineStyle       = 0;
+		pw.Series[i].LineColor       = pw.Series[0].LineColor;
+	End;
+	
+	// hide legend
+	pw.Legend.Visible = 0;
+	
+	If (title == "");
+		pw.PlotTitle.Visible = 0;
+	Else;
+		pw.PlotTitle.Visible = 1;
+		pw.PlotTitle.Text    = title;
+	End;
+	If (subTitle == "");
+		pw.PlotSubTitle.Visible = 0;
+	Else;
+		pw.PlotSubTitle.Visible = 1;
+		pw.PlotSubTitle.Text    = subTitle;
+	End;
+	
+	If (xlabel == "");
+		pw.XAxis.Title.Visible = 0;
+	Else;
+		pw.XAxis.Title.Visible = 1;
+		pw.XAxis.Title.Text    = xlabel;
+	End;
+	If (ylabel == "");
+		pw.YAxis.Title.Visible = 0;
+	Else;
+		pw.YAxis.Title.Visible = 1;
+		pw.YAxis.Title.Text    = ylabel;
+	End;
+	
+	If (xMinMax.Dimension == 2);
+		If (xMinMax[0] != -999) then;
+			pw.XAxis.MinimumValue = xMinMax[0];
+		End;
+		If (xMinMax[1] != -999) then;
+			pw.XAxis.MaximumValue = xMinMax[1];
+		End;
+	End;
+	If (yMinMax.Dimension == 2);
+		If (yMinMax[0] != -999) then;
+			pw.YAxis.MinimumValue = yMinMax[0];
+		End;
+		If (yMinMax[1] != -999) then;
+			pw.YAxis.MaximumValue = yMinMax[1];
+		End;
+	End;
+	pw.EndBatchUpdate();
+
+EndProcedure;
+
+
+
+// MakeStackedBarChart()
+// This procedure will create a bar chart using all the x/y array pairs provided as series data
+// Axis Minimum and Maximum values can be set to automatic with -999 for each max/min or also empty arrays
+//
+// Inputs/Outputs: See Below
+//
+//
+// Dependencies:
+//     - ConfigurePlotWindow()
+//     - ConfigureColorTheme()
+//     - GetSeriesColorPalette()
+//
+// Assumptions:
+//     - None
+
+Define Procedure MakeStackedBarChart(PlotWindow            pw,  /* Input/Output - plot window to be updated  */
+								     Variable    barDirection,  /* Input/       - Direction of bars (0 for horizontal, 1 for vertical)  */
+	                        	     Array              xvals,  /* Input/       - x-ordinate data  */
+						    	     List<Array>        yvals,  /* Input/       - y-ordinate data  */
+									 StringArray seriesLabels,  /* Input/       - Series Labels for legend  */
+	                        	     String            xlabel,  /* Input/       - X-Axis title  (blank string to hide) */
+	                        	     String            ylabel,  /* Input/       - Y-Axis title  (blank string to hide) */
+	                        	     Array            xMinMax,  /* Input/       - X axis limits array {xMin, xMax} (-999 or empty array for auto sizing)  */
+	                        	     Array            yMinMax,  /* Input/       - Y axis limits array {xMin, xMax} (-999 or empty array for auto sizing)  */
+	                        	     String             title,  /* Input/       - Plot Title        (blank string to hide)  */
+									 String          subTitle); /* Input/       - Plot SubTitle     (blank string to hide)  */
+	
+	Variable i;
+	Variable j;
+	Variable ind;
+	Variable stagger;
+	Variable barWidth;
+	Variable binWidthFraction;
+	
+	Array xstagger;
+	Array binColors;
+	
+	List<List<PlotScatterSeries>> pss1;
+	
+	// check to make sure the requested plot won't blow up TeeCharts
+	If (xvals.Dimension*yvals.Count > 1650);
+		Diagnostics.ReportErrorMessage( 1, "Unable to generate Bar Chart.  The product of the X-bins and Series count exceeds 1650, which is the upper limit of this plotting library.");
+		ExitProcedure;
+	End;
+	
+	
+	pw.MaxPoints = 1000000;
+	pw.BeginBatchUpdate();
+	
+	xstagger.Clear();
+	binColors.Clear();
+	pss1.Clear();
+	pss1.Count = yvals.Count;
+	
+	// if there's a lot of series, open up the bin, and make the bars more narrow
+	If (yvals.Count >= 10);
+		binWidthFraction = 0.75;
+		barWidth         = 8;
+	ElseIf (yvals.Count >= 5);
+		binWidthFraction = 0.625;
+		barWidth         = 11;
+	Else;
+		binWidthFraction = 0.5;
+		barWidth         = 17;
+	End;
+	
+	stagger = binWidthFraction/yvals.Count;// this assumes bins are 1 'unit' apart
+	xstagger.FillLinspace(-1*stagger*yvals.Count/2, stagger*yvals.Count/2, yvals.Count);
+	
+	Call GetSeriesColorPalette("SeabornDark", binColors);
+
+	// add series in order, assgining colors to each list
+	ind = 0;
+	For i = 0 to yvals.Count-1;
+		If (ind == binColors.Dimension);
+			ind = 0;
+		End;
+		
+		pss1[i].Count = xvals.Dimension;
+		For j = 0 to xvals.Dimension-1;
+			If (j == 0);
+				pss1[i][j].ShowInLegend = 1;
+				pss1[i][j].Label        = seriesLabels[i];
+			Else;
+				pss1[i][j].ShowInLegend = 0;
+			End;
+			
+			pss1[i][j].LineColor    = binColors[ind];
+			pss1[i][j].MarkersColor = binColors[ind];
+			
+			If (barDirection == 1);
+				//vertical
+				pss1[i][j].AddPoints({xvals[j]+xstagger[i], xvals[j]+xstagger[i]}, {0, yvals[i][j]});
+			Else;
+				// horizontal
+				pss1[i][j].AddPoints({0, yvals[i][j]}, {xvals[j]+xstagger[i], xvals[j]+xstagger[i]});
+			End;
+			pw.AddSeries(pss1[i][j]);
+		End;
+		ind++;
+	End;
+	
+	
+	Call ConfigurePlotWindow(pw, 8, 0, 26, "Candara", "lightGray", "Default");
+
+	// override marker visibility, line style
+	For i = 0 to pw.Series.Count-1 step 1;
+		pw.Series[i].MarkersVisible  = 0;
+		pw.Series[i].LineStyle       = 0;
+	End;
+	
+	If (title == "");
+		pw.PlotTitle.Visible = 0;
+	Else;
+		pw.PlotTitle.Visible = 1;
+		pw.PlotTitle.Text    = title;
+	End;
+	If (subTitle == "");
+		pw.PlotSubTitle.Visible = 0;
+	Else;
+		pw.PlotSubTitle.Visible = 1;
+		pw.PlotSubTitle.Text    = subTitle;
+	End;
+	
+	If (xlabel == "");
+		pw.XAxis.Title.Visible = 0;
+	Else;
+		pw.XAxis.Title.Visible = 1;
+		pw.XAxis.Title.Text    = xlabel;
+	End;
+	If (ylabel == "");
+		pw.YAxis.Title.Visible = 0;
+	Else;
+		pw.YAxis.Title.Visible = 1;
+		pw.YAxis.Title.Text    = ylabel;
+	End;
+	
+	If (xMinMax.Dimension == 2);
+		If (xMinMax[0] != -999) then;
+			pw.XAxis.MinimumValue = xMinMax[0];
+		End;
+		If (xMinMax[1] != -999) then;
+			pw.XAxis.MaximumValue = xMinMax[1];
+		End;
+	End;
+	If (yMinMax.Dimension == 2);
+		If (yMinMax[0] != -999) then;
+			pw.YAxis.MinimumValue = yMinMax[0];
+		End;
+		If (yMinMax[1] != -999) then;
+			pw.YAxis.MaximumValue = yMinMax[1];
+		End;
+	End;
+	pw.EndBatchUpdate();
+
+EndProcedure;
+
+
+
+// MakePolarPlot()
+// This procedure will create a single plot using all the x/y array pairs provided as series data
+// Axis Minimum and Maximum values can be set to automatic with -999 for each max/min or also empty arrays
+//
+// Inputs/Outputs: See Below
+//
+// Dependencies:
+//     - None
+//
+// Assumptions:
+//     - None
+
+Define Procedure MakePolarPlot(PlotWindow     pw,  /* Input/Output - plot window to be updated  */
+		                       Array   thetavals,  /* Input/       - Theta-ordinate data  */
+							   Array       rvals,  /* Input/       - R-ordinate data  */
+		                       String thetalabel,  /* Input/       - Theta-Axis title (blank string to hide) */
+		                       String     rlabel,  /* Input/       - R-Axis title     (blank string to hide)*/
+		                       Array     rMinMax,  /* Input/       - R axis limits array {xMin, xMax} (-999 or empty array for auto sizing)  */
+		                       String      title,  /* Input/       - Plot Title        (blank string to hide)  */
+							   String   subTitle); /* Input/       - Plot SubTitle     (blank string to hide)  */
+
+	PlotScatterSeries pss1;
+	
+	pw.PlotType  = "PolarPlot";
+	pw.MaxPoints = 1000000;
+	pw.BeginBatchUpdate();
+	
+	pss1.ClearPoints();
+	pss1.AddPoints(thetavals, rvals);
+	pw.AddSeries(pss1);
+	
+	
+	If (title == "");
+		pw.PlotTitle.Visible = 0;
+	Else;
+		pw.PlotTitle.Visible = 1;
+		pw.PlotTitle.Text    = title;
+	End;
+	If (subTitle == "");
+		pw.PlotSubTitle.Visible = 0;
+	Else;
+		pw.PlotSubTitle.Visible = 1;
+		pw.PlotSubTitle.Text    = subTitle;
+	End;
+	
+	If (rlabel == "");
+		pw.RAxis.Title.Visible = 0;
+	Else;
+		pw.RAxis.Title.Visible = 1;
+		pw.RAxis.Title.Text    = rlabel;
+	End;
+	If (thetalabel == "");
+		pw.ThetaAxis.Title.Visible = 0;
+	Else;
+		pw.ThetaAxis.Title.Visible = 1;
+		pw.ThetaAxis.Title.Text    = thetalabel;
+	End;
+	
+	If (rMinMax.Dimension == 2);
+		If (rMinMax[0] != -999) then;
+			pw.RAxis.MinimumValue = rMinMax[0];
+		End;
+		If (rMinMax[1] != -999) then;
+			pw.RAxis.MaximumValue = rMinMax[1];
+		End;
+	End;
+	
+	pw.EndBatchUpdate();
+
+EndProcedure;
+
+
+
+// MakePolarPlots()
+// This procedure will create a single plot using all the x/y array pairs provided as series data
+// Axis Minimum and Maximum values can be set to automatic with -999 for each max/min or also empty arrays
+//
+// Inputs/Outputs: See Below
+//
+//
+// Dependencies:
+//     - None
+//
+// Assumptions:
+//     - None
+
+Define Procedure MakePolarPlots(PlotWindow         pw,  /* Input/Output - plot window to be updated  */
+		                        List<Array> thetavals,  /* Input/       - theta-ordinate data  */
+							    List<Array>     rvals,  /* Input/       - R-ordinate data  */
+		                        String     thetalabel,  /* Input/       - Theta-Axis title (blank string to hide) */
+		                        String         rlabel,  /* Input/       - R-Axis title     (blank string to hide)  */
+		                        Array         rMinMax,  /* Input/       - R axis limits array {rMin, rMax} (-999 or empty array for auto sizing)  */
+		                        String          title,  /* Input/       - Plot Title        (blank string to hide)  */
+							    String       subTitle); /* Input/       - Plot SubTitle     (blank string to hide)  */
+
+	Variable i;
+	List<PlotScatterSeries> pss1;
+	
+	pw.PlotType  = "PolarPlot";
+	pw.MaxPoints = 1000000;
+	pw.BeginBatchUpdate();
+	
+	
+	pss1.Clear();
+	pss1.Count = thetavals.Count;
+	
+	For i = 0 to thetavals.Count-1;
+		pss1[i].AddPoints(thetavals[i], rvals[i]);
+		pw.AddSeries(pss1[i]);
+	End;
+	
+	If (title == "");
+		pw.PlotTitle.Visible = 0;
+	Else;
+		pw.PlotTitle.Visible = 1;
+		pw.PlotTitle.Text    = title;
+	End;
+	If (subTitle == "");
+		pw.PlotSubTitle.Visible = 0;
+	Else;
+		pw.PlotSubTitle.Visible = 1;
+		pw.PlotSubTitle.Text    = subTitle;
+	End;
+	
+	If (rlabel == "");
+		pw.RAxis.Title.Visible = 0;
+	Else;
+		pw.RAxis.Title.Visible = 1;
+		pw.RAxis.Title.Text    = rlabel;
+	End;
+	If (thetalabel == "");
+		pw.ThetaAxis.Title.Visible = 0;
+	Else;
+		pw.ThetaAxis.Title.Visible = 1;
+		pw.ThetaAxis.Title.Text    = thetalabel;
+	End;
+	
+	If (rMinMax.Dimension == 2);
+		If (rMinMax[0] != -999) then;
+			pw.RAxis.MinimumValue = rMinMax[0];
+		End;
+		If (rMinMax[1] != -999) then;
+			pw.RAxis.MaximumValue = rMinMax[1];
+		End;
+	End;
+	
+	pw.EndBatchUpdate();
+
+EndProcedure;
+
+
+// AddPolynomialLine()
+// This procedure add a single PlotPolynomialSeries to the plot and format it based on the inputs
+//
+// Inputs/Outputs: See Below
+//
+//
+// Dependencies:
+//     - None
+//
+// Assumptions:
+//     - None
+
+Define Procedure AddPolynomialLine(PlotWindow      pw,  /* Inputs/Outputs - plot window to be updated */
+								   Array       coeffs,  /* Inputs/        - Coefficients of polynnomial {Nth, Nth-1, ..., 0th} */
+								   Variable lineWidth,  /* Inputs/        - Line width */
+								   Variable     color,  /* Inputs/        - Line Color */
+								   Variable  lineType,  /* Inputs/        - Line Type (0=solid, 1=dashed, 2=dotted, 3=dash-dot, 4=dash-dot-dot) */
+								   String       label); /* Inputs/        - Line series Label for the legend (blank string to hide) */
+	
+	Variable seriesCount;
+	
+	List<PlotPolynomialSeries> pps;
+	
+	pps.Clear();
+	pps.Count = 1;
+	
+	pps[0].SetCoefficients(coeffs);
+	
+	seriesCount = pw.Series.Count;
+	
+	pw.BeginBatchUpdate();
+	
+	pw.AddSeries(pps[0]);
+
+	pw.Series[seriesCount].LineWidth    = lineWidth;
+	pw.Series[seriesCount].LineColor    = color;
+	pw.Series[seriesCount].LineStyle    = lineType;
+	
+	If (label.Length != 0);
+		pw.Series[seriesCount].Label = label;
+	Else;
+		pw.Series[seriesCount].ShowInLegend = 0;
+	End;
+	
+	pw.EndBatchUpdate();
+	
+EndProcedure;
+
+
+
+// AddVerticalLine()
+// This procedure add a single (Vertical) PlotScatterSeries to the plot and format it based on the inputs
+//
+// Inputs/Outputs: See Below
+//
+// Dependencies:
+//     - None
+//
+// Assumptions:
+//     - None
+
+Define Procedure AddVerticalLine(PlotWindow      pw,  /* Input/Output -  plot window to be updated */
+								 Variable      xVal,  /* Input/       -  x-coordinate of vertical line*/
+								 Array      yMinMax,  /* Input/       -  Y min/Max values of vertical line (REQUIRED: cannot be -999 or empty) */
+								 Variable lineWidth,  /* Input/       -  Line width */
+								 Variable     color,  /* Input/       -  Line Color */
+								 Variable  lineType,  /* Input/       -  Line Type (0=solid, 1=dashed, 2=dotted, 3=dash-dot, 4=dash-dot-dot) */
+								 String       label); /* Input/       -  Line series Label for the legend (blank string to hide)*/
+	
+	Variable seriesCount;
+	Array xVals;
+	List<PlotScatterSeries> vpss;
+	
+	vpss.Clear();
+	vpss.Count = 1;
+	
+	xVals.Fill(xVal, yMinMax.Dimension);
+	
+	vpss[0].AddPoints(xVals, yMinMax);
+
+	
+	seriesCount = pw.Series.Count;
+	
+	pw.BeginBatchUpdate();
+	
+	pw.AddSeries(vpss[0]);
+	
+	pw.Series[seriesCount].MarkersVisible = 0;
+	pw.Series[seriesCount].LineWidth      = lineWidth;
+	pw.Series[seriesCount].LineColor      = color;
+	pw.Series[seriesCount].LineStyle      = lineType;
+	
+	If (label.Length != 0);
+		pw.Series[seriesCount].Label = label;
+	Else;
+		pw.Series[seriesCount].ShowInLegend = 0;
+	End;
+	
+	pw.EndBatchUpdate();
+	
+EndProcedure;
+
+
+
+// AddHorizontalLine()
+// This procedure add a single (Horizontal) PlotScatterSeries to the plot and format it based on the inputs
+//
+// Inputs/Outputs: See Below
+//
+// Dependencies:
+//     - GetAxisMinMax()
+//
+// Assumptions:
+//     - None
+
+Define Procedure AddHorizontalLine(PlotWindow      pw,  /* Input/Output -  plot window to be updated */
+								   Array      xMinMax,  /* Input/       -  X-min/Max values of horizontal line (-999 or empty) */
+								   Variable    yValue,  /* Input/       -  Y value of horizontal line (REQUIRED: cannot be -999 or empty) */
+								   Variable lineWidth,  /* Input/       -  Line width */
+								   Variable     color,  /* Input/       -  Line Color */
+								   Variable  lineType,  /* Input/       -  Line Type (0=solid, 1=dashed, 2=dotted, 3=dash-dot, 4=dash-dot-dot) */
+								   String       label); /* Input/       -  Line series Label for the legend (blank string to hide)*/
+	
+	Variable seriesCount;
+	Array yVals;
+	Array x_min_max_internal;
+	List<PlotScatterSeries> vpss;
+	
+	vpss.Clear();
+	vpss.Count = 1;
+	
+	If (xMinMax.Dimension == 0);
+		Call GetAxisMinMax(pw, "X", x_min_max_internal);
+	ElseIf (xMinMax.FindFirst(-999) != -1);
+		Call GetAxisMinMax(pw, "X", x_min_max_internal);
+		If (xMinMax[0] != -999);
+			// use provided x min
+			x_min_max_internal[0] = xMinMax[0];
+		End;
+		If (xMinMax[1] != -999);
+			// use provided x max
+			x_min_max_internal[1] = xMinMax[1];
+		End;
+	End;
+	
+	yVals.Fill(yValue, x_min_max_internal.Dimension);
+	
+	vpss[0].AddPoints(x_min_max_internal, yVals);
+
+	
+	seriesCount = pw.Series.Count;
+	
+	pw.BeginBatchUpdate();
+	
+	pw.AddSeries(vpss[0]);
+	
+	pw.Series[seriesCount].MarkersVisible = 0;
+	pw.Series[seriesCount].LineWidth      = lineWidth;
+	pw.Series[seriesCount].LineColor      = color;
+	pw.Series[seriesCount].LineStyle      = lineType;
+	
+	If (label.Length != 0);
+		pw.Series[seriesCount].Label = label;
+	Else;
+		pw.Series[seriesCount].ShowInLegend = 0;
+	End;
+	
+	pw.EndBatchUpdate();
+	
+EndProcedure;
+
+
+
+// AddCircleToPolarPlot()
+// This procedure add a single (circular) PlotScatterSeries to the plot and format it based on the inputs
+//
+// Inputs/Outputs: See Below
+//
+// Dependencies:
+//     - None
+//
+// Assumptions:
+//     - None
+
+Define Procedure AddCircleToPolarPlot(PlotWindow           pw,  /* Input/Output -  plot window to be updated */ 
+									  Variable   circleRadius,  /* Input/       -  r-coordinate of circular line*/
+									  Variable      lineWidth,  /* Input/       -  Line width */
+								 	  Variable          color,  /* Input/       -  Line Color */
+								 	  Variable       lineType,  /* Input/       -  Line Type (0=solid, 1=dashed, 2=dotted, 3=dash-dot, 4=dash-dot-dot) */
+									  String            label); /* Input/       -  Line series Label for the legend (blank string to hide)*/
+	
+	Array thetas;
+	Array rVals;
+	Variable seriesCount;
+	List<PlotScatterSeries> cpss;
+	
+	
+	If (pw.PlotType == "XYPlot");
+		Diagnostics.ReportErrorMessage(0, "Unable to add circle to plot.  The provided PlotWindow is not configured as a Polar Plot.");
+	End;
+	
+	
+
+	thetas.FillLinspace(0, 360, 361);
+	rVals.Fill(circleRadius, thetas.Dimension);
+
+	cpss.Clear();
+	cpss.Count = 1;
+	
+	
+	cpss[0].AddPoints(thetas, rVals);
+
+	
+	seriesCount = pw.Series.Count;
+	
+	pw.BeginBatchUpdate();
+	
+	pw.AddSeries(cpss[0]);
+	
+	pw.Series[seriesCount].MarkersVisible = 0;
+	pw.Series[seriesCount].LineWidth      = lineWidth;
+	pw.Series[seriesCount].LineColor      = color;
+	pw.Series[seriesCount].LineStyle      = lineType;
+	
+	If (label.Length != 0);
+		pw.Series[seriesCount].Label = label;
+	Else;
+		pw.Series[seriesCount].ShowInLegend = 0;
+	End;
+	
+	pw.EndBatchUpdate();
+	
+EndProcedure;
+
+
+
+// AddDataLabelsToSinglePoint()
+// Adds user-defined labels to a single point in a data series on a plot
+//
+// Inputs/Outputs: See Below
+//
+// Dependencies:
+//     - None
+//
+// Assumptions:
+//     - Assumes Plot Window has been populated with data
+
+Define Procedure AddDataLabelsToSinglePoint(PlotWindow         pw,  /* Input/Output - plot window to be updated  */
+				   					   		Variable    seriesInd,  /* Input/       - array index of series to be updated  */
+											Variable     pointInd,  /* Input/       - array index of specific point to be updated  */
+									   		String      dataLabel); /* Input/       - data series label */
+	
+	Variable i;
+	
+	If (seriesInd >= pw.Series.Count);
+		
+		Diagnostics.ReportWarningMessage( "Unable to add Data Labels to Series.  Requested series index of "+seriesInd.Format("%d")+" exceeds the PlotWindow series dimension of "+pw.Series.Count.Format("%d")+" .");
+		ExitProcedure;
+	End;
+	
+	
+	If (pw.Series[seriesInd] IsType PlotScatterSeries);
+	
+		Alias pwSeries = (pw.Series[seriesInd] AsType PlotScatterSeries);
+	
+		If (pointInd >= pwSeries.DataLabels.Count);
+			Diagnostics.ReportWarningMessage( "Unable to add Data Label to Series.  Requested series count of "+
+			                    			  pwSeries.DataLabels.Count.Format("%d")+" is less than the index value of "+pointInd.Format("%d")+" supplied for the point to be labeled.");
+			ExitProcedure;
+		End;
+		
+		pw.BeginBatchUpdate();
+		
+
+		pwSeries.DataLabels[pointInd] = dataLabel;
+		
+		If ( pwSeries.DataLabelsVisible == 0);
+			pwSeries.DataLabelsVisible = 1;
+			pwSeries.DataLabelsStyle   = 2;
+			
+			pwSeries.DataLabelsFont.Bold = 1;
+			pwSeries.DataLabelsFont.Size += 4;
+		End;
+		pw.EndBatchUpdate();
+		
+	Else;
+		Diagnostics.ReportWarningMessage( "Unable to add Data Labels to Series.  The requested series does not evaluate to type PlotScatterSeries.");
+	End;
+	
+EndProcedure;
+
+
+// AddSinglePointToPlot()
+// This procedure add a single point as a PlotScatterSeries to the plot and format it based on the inputs.
+// Works for both Cartesian and Polar Plots
+//
+// Inputs/Outputs: See Below
+//
+// Dependencies:
+//     - None
+//
+// Assumptions:
+//     - None
+
+Define Procedure AddSinglePointToPlot(PlotWindow        pw,  /* Input/Output -  plot window to be updated */
+								  	  Variable    xOrTheta,  /* Input/       -  X- or theta-coordinate of point*/
+								  	  Variable        yOrR,  /* Input/       -  Y- or r-coordinate of point */
+								  	  Variable  markerSize,  /* Input/       -  Size of Point marker */
+								  	  Variable  markerType,  /* Input/       -  Int Value defining Point shape (0-14) */
+								  	  Variable       color,  /* Input/       -  Point marker Color */
+								  	  String         label); /* Input/       -  Series Label for the legend (blank string to hide)*/
+	
+	Variable seriesCount;
+
+	List<PlotScatterSeries> spss;
+	
+	spss.Clear();
+	spss.Count = 1;
+	
+	spss[0].AddPoints(xOrTheta, yOrR);
+
+	
+	seriesCount = pw.Series.Count;
+	
+	pw.BeginBatchUpdate();
+	
+	pw.AddSeries(spss[0]);
+	
+	pw.Series[seriesCount].LineVisible    = 0;
+	pw.Series[seriesCount].MarkersVisible = 1;
+	pw.Series[seriesCount].MarkersSize    = markerSize;
+	pw.Series[seriesCount].MarkersStyle   = markerType;
+	pw.Series[seriesCount].MarkersColor   = color;
+	pw.Series[seriesCount].LineColor      = color;
+	
+	If (label.Length != 0);
+		pw.Series[seriesCount].Label = label;
+	Else;
+		pw.Series[seriesCount].ShowInLegend = 0;
+	End;
+	
+	pw.EndBatchUpdate();
+	
+EndProcedure;
+
+
+
+
+// AddFloatingLabelToPlot()
+// Adds user-defined data label  to a single (hidden) point to provide a floating note in the plot
+//
+// Inputs/Outputs: See Below
+//
+// Dependencies:
+//     - AddSinglePointToPlot()
+//
+// Assumptions:
+//     - Assumes Plot Window has been populated with data
+
+Define Procedure AddFloatingLabelToPlot(PlotWindow         pw,  /* Input/Output -  plot window to be updated  */
+				   					    Variable     xOrTheta,  /* Input/       -  X- or theta-coordinate of point*/
+								  	    Variable         yOrR,  /* Input/       -  Y- or r-coordinate of point */
+								  	    Variable   labelcolor,  /* Input/       -  Data label Color */
+										Variable      bgcolor,  /* Input/       -  Data label background Color (-999 to hide) */
+										String      labelFont,  /* Input/       -  Data label font face (empty string to ignore) */
+										Variable     fontSize,  /* Input/       -  Size of data label font */
+									    String      dataLabel); /* Input/       -  Data label text */
+	
+	Variable i;
+	
+	// first add a new series with a single point and no legend entry
+	Call AddSinglePointToPlot(pw, xOrTheta, yOrR, 1, 1, labelcolor, "");
+	
+
+	Alias pwSeries = (pw.Series[pw.Series.Count-1] AsType PlotScatterSeries);
+
+
+	pw.BeginBatchUpdate();
+	
+	pwSeries.DataLabels[0]        = dataLabel;
+	pwSeries.DataLabelsVisible    = 1;
+	pwSeries.DataLabelsStyle      = 2;
+	pwSeries.DataLabelsFont.Bold  = 1;
+	pwSeries.DataLabelsFont.Size  = fontSize;
+	pwSeries.DataLabelsTextColor  = labelcolor;
+	
+	If (labelFont != "");
+		pwSeries.DataLabelsFont.Typeface = labelFont;
+	End;
+	
+	If (bgcolor == -999);
+		pwSeries.DataLabelsBackgroundVisible = 0;
+	Else;
+		pwSeries.DataLabelsBackgroundColor   = bgcolor;
+		pwSeries.DataLabelsBackgroundVisible = 1;
+	End;
+
+	// now hide the actual data point
+	pwSeries.MarkersVisible      = 0;
+	
+	
+	pw.EndBatchUpdate();
+	
+EndProcedure;
+
+
+
+
+// AddErrorBars()
+// Adds either horizontal or vertical error bars to a single point on a plot.  Error bars are added as a separate series,
+// leave the label argument blank to keep the series out of the Plot Legend
+//
+// Inputs/Outputs: See Below
+//
+// Dependencies:
+//     - None
+//
+// Assumptions:
+//     - Assumes Plot Window has been populated with data
+
+Define Procedure AddErrorBars(	PlotWindow           pw,    /* Input/Output -  plot window to be updated  */
+								Array         dataPoint,    /* Input/       -  X- and Y- coordinates of the data point*/
+								Variable       errorMag,    /* Input/       -  magnitude of the error bar*/
+								Variable   barDirection,    /* Input/       -  error direction, 0 = horizontal, 1 = vertical*/
+								Variable       lineSize,    /* Input/       -  line width of the error bars*/
+								Variable          color,    /* Input/       -  the color of the error bars*/
+								String            label);   /* Input/       -  label for the error bars in the legend (empty string to ignore)*/
+	
+	
+	Variable seriesCount;
+	Array yVals;
+	Array xVals;
+
+	List<PlotScatterSeries> spss;
+	
+	spss.Clear();
+	spss.Count = 1;
+	
+	xVals.Fill(0,2);
+	yVals.Fill(0,2);
+	
+	If (barDirection == 0);// horizontal
+		
+		xVals[0] = dataPoint[0] - errorMag;
+		xVals[1] = dataPoint[0] + errorMag;
+		
+		yVals.Fill(dataPoint[1], 2);
+	Else;
+		xVals.Fill(dataPoint[0], 2);
+		
+		yVals[0] = dataPoint[1] - errorMag;
+		yVals[1] = dataPoint[1] + errorMag;
+	End;
+	
+	
+	spss[0].AddPoints(xVals, yVals);
+
+	
+	seriesCount = pw.Series.Count;
+	
+	pw.BeginBatchUpdate();
+	
+	pw.AddSeries(spss[0]);
+	
+	pw.Series[seriesCount].LineVisible    = 1;
+	pw.Series[seriesCount].MarkersVisible = 1;
+	pw.Series[seriesCount].MarkersSize    = lineSize;
+	pw.Series[seriesCount].LineWidth      = lineSize;
+	pw.Series[seriesCount].LineStyle      = 2;     // dotted
+	pw.Series[seriesCount].MarkersStyle   = 7;     // diamond
+	pw.Series[seriesCount].MarkersColor   = color;
+	pw.Series[seriesCount].LineColor      = color;
+	
+	If (label.Length != 0);
+		pw.Series[seriesCount].Label = label;
+	Else;
+		pw.Series[seriesCount].ShowInLegend = 0;
+	End;
+	
+	pw.EndBatchUpdate();
+
+EndProcedure;
+
+
+// BinData()
+// Takes an input array of values and bin size and creates a bins array and counts of data
+// points in each bin
+//
+// Inputs/Outputs: See Below
+//
+// Dependencies:
+//     - None
+//
+// Assumptions:
+//     - None
+
+Define Procedure BinData(	Array      values, 		/* Input/       - Array of the data points to be binned*/
+							Variable bin_size, 		/* Input/       - the size of the bin to use */
+							Array        bins, 		/*      /Output - Array of the bin values (x-axis of a histogram) */
+							Array      counts);		/*      /Output - Array of counts of data points in each bin */
+	
+	
+	Variable n_bins;
+	Variable bin_min;
+	Variable bin_max;
+	
+	Variable i;
+	Variable j;
+	
+	bins.Clear();
+	counts.Clear();
+	
+	bin_min = floor(values.Min()/bin_size) * bin_size;
+	bin_max = ceiling(values.Max()/bin_size) * bin_size;
+	
+	n_bins = ceiling((bin_max-bin_min)/bin_size);
+	
+	bins.FillLinspace(bin_min, bin_max, n_bins);
+	
+	counts.Dimension = bins.Dimension;
+	
+	For i = 0 to values.Dimension-1;
+		
+		For j = 1 to bins.Dimension-1;
+			If (values[i] > bins[j-1] and values[i] <= bins[j]);
+				counts[j]++;
+				Break;
+			End;
+		End;
+	End;
+	
+EndProcedure;
+
+
+
+// MakeGanttChart()
+// Makes a horizontal Gantt chart from the AOS/LOS times contained in the scheduleData list of Matrices
+//
+// Inputs/Outputs: See Below
+//
+// Dependencies:
+//     - ConfigurePlotWindow
+//     - ConfigureColorTheme()
+//     - GetSeriesColorPalette() 
+//     - AddFloatingLabelToPlot()
+//
+// Assumptions:
+//     - None
+
+Define Procedure MakeGanttChart(	PlotWindow               pw,   /* Input/Output - Plot window to display the results */ 
+									List<Matrix>   scheduleData,   /* Input/       - List of Matrices with pass start/stop times for each Ground Station */ 	
+									List<Matrix> visibilityData,   /* Input/       - List of Matrices with visibility start/stop times for each Ground Station */ 	
+									StringArray    stationNames,   /* Input/       - Ground Station names for display, order must match schedule data */ 	
+									Variable          lineWidth,   /* Input/       - Line width */
+									Variable      titleFontSize,   /* Input/       - Title Font size (other lables/titles are scaled from this)  */
+									String             fontFace,   /* Input/       - Font Face (the name of any font installed in windows)  */
+									String       bgColorPalette,   /* Input/       - name of background color palette to use: see above for allowed values  */
+									String         colorPalette,   /* Input/       - name of series color palette to use: see above for allowed values  */
+									String                title,   /* Input/       - Plot Title        (blank string to hide)  */
+									String             subTitle);  /* Input/       - Plot SubTitle     (blank string to hide)  */
+	
+	
+	Variable i;
+	Variable j;
+	Variable visOffset;
+	Variable minX;
+	Variable maxX;
+	List<PlotScatterSeries> pss1;
+	List<PlotScatterSeries> pss2;
+	List<PlotPolynomialSeries> pps1;
+	Array yVals;
+	
+	minX = 1e9;
+	maxX = 0;
+	
+	pw.MaxPoints = 1000000;
+	pw.BeginBatchUpdate();
+	
+	yVals.FillLinspace(1, scheduleData.Count, scheduleData.Count);
+	
+	pss1.Clear();
+	pss2.Clear();
+	pps1.Clear();
+	pss1.Count = scheduleData.Count;
+	pss2.Count = scheduleData.Count;
+	pps1.Count = scheduleData.Count;
+	
+	// first add background 'connector' dotted lines
+	For i = 0 to pps1.Count-1;
+		pps1[i].SetCoefficients({yVals[i]});
+		pps1[i].ShowInLegend = 0;
+		pps1[i].LineStyle    = 2;
+		pw.AddSeries(pps1[i]);
+	End;
+	
+	// set up formatting
+	Call ConfigurePlotWindow(pw, 2, 0, titleFontSize, fontFace, bgColorPalette, colorPalette);
+	
+	
+	//now add GANTT bars for visibility
+	visOffset = 0.0;
+	For i = 0 to visibilityData.Count-1;
+		
+		For j = 0 to visibilityData[i].RowCount-1;
+			// horizontal
+			pss2[i].AddPoints( {visibilityData[i][j,0], visibilityData[i][j,1]}, {yVals[i]+visOffset, yVals[i]+visOffset});
+			pss2[i].InsertLineBreak();
+		End;
+		
+		// make color match the 'connector' lines
+		pss2[i].LineColor       = ColorTools.AdjustBrightness( pw.Series[i].LineColor, 0.60);
+		pss2[i].MarkersVisible  = 0;
+		pss2[i].LineStyle       = 0;
+		pss2[i].LineWidth       = lineWidth+15;
+		pw.AddSeries(pss2[i]);
+		
+		minX = min(minX, visibilityData[i][:,0].Min());
+		maxX = max(maxX, visibilityData[i][:,1].Max());
+	End;
+	
+	//now add actual GANTT bars for passes
+	For i = 0 to scheduleData.Count-1;
+		
+		For j = 0 to scheduleData[i].RowCount-1;
+			// horizontal
+			pss1[i].AddPoints( {scheduleData[i][j,0], scheduleData[i][j,1]}, {yVals[i], yVals[i]});
+			pss1[i].InsertLineBreak();
+		End;
+		
+		// make color match the 'connector' lines
+		pss1[i].LineColor       = pw.Series[i].LineColor;
+		pss1[i].MarkersVisible  = 0;
+		pss1[i].LineStyle       = 0;
+		pss1[i].LineWidth       = lineWidth;
+		pw.AddSeries(pss1[i]);
+		
+		minX = min(minX, scheduleData[i][:,0].Min());
+		maxX = max(maxX, scheduleData[i][:,1].Max());
+	End;
+	
+	// now add labels
+
+	Variable xLoc;
+	
+	For i = 0 to stationNames.Dimension-1;
+		xLoc = minX + (maxX-minX)*0.03;
+		Call AddFloatingLabelToPlot(pw, xLoc, yVals[i] + stationNames.Dimension*0.03, pw.PlotTitle.Color, pw.BackgroundColor, "", 18, stationNames[i]);
+		
+		xLoc = minX + (maxX-minX)*0.045;
+		Call AddFloatingLabelToPlot(pw, xLoc, yVals[i] - stationNames.Dimension*0.09, pw.BackgroundColor, ColorTools.AdjustBrightness( pw.Series[i].LineColor, 0.60), "", 18, "Available");
+		
+		xLoc = minX + (maxX-minX)*0.145;
+		Call AddFloatingLabelToPlot(pw, xLoc, yVals[i] - stationNames.Dimension*0.09, pw.BackgroundColor, pw.Series[i].LineColor, "", 18, "Scheduled");
+	End;
+	
+	// hide legend
+	pw.Legend.Visible = 0;
+
+	
+	If (title == "");
+		pw.PlotTitle.Visible = 0;
+	Else;
+		pw.PlotTitle.Visible = 1;
+		pw.PlotTitle.Text    = title;
+	End;
+	If (subTitle == "");
+		pw.PlotSubTitle.Visible = 0;
+	Else;
+		pw.PlotSubTitle.Visible = 1;
+		pw.PlotSubTitle.Text    = subTitle;
+	End;
+	
+	pw.XAxis.UseDateTimeFormatting = 1;
+	pw.XAxis.Title.Visible = 0;
+	pw.YAxis.Title.Visible = 0;
+
+	pw.YAxis.LabelsFormat = "#";
+	pw.YAxis.LabelsColor  = pw.BackgroundColor;  //'hide' y-axis labels
+	pw.YAxis.MinimumValue = 0.5;
+	pw.YAxis.MaximumValue = scheduleData.Count + 0.5;
+	pw.EndBatchUpdate();
+	
+EndProcedure;
+
+
+// PlotsSeriesWithColorScaledByValue()
+// This procdure sets the line and marker size a single plot series at the specfied index and sets the label into the legend
+//
+// Dependencies:
+//     - None
+//
+// Assumptions:
+//     - Assumes Plot Window has been populated with data
+
+Define Procedure PlotsSeriesWithColorScaledByValue(	PlotWindow              pw,   /* Input/Output - plot window to be updated  */
+								    				Array              xValues,   /* Input/       - array of the x-values of the series  */
+													Array              yValues,   /* Input/       - array of the y-values of the series  */
+													Array          scaleValues,   /* Input/       - array of the data to be encoded in the point color  */
+													Array           colorRange,   /* Input/       - an array of the colors to be interpolated  */
+													Variable        markerSize,   /* Input/       - the size of the markers for the series */
+													Variable       markerStyle,   /* Input/       - numeric code for the shape of the marker (0-14) */
+													StringArray   minMaxLabels);  /* Input/       - labels for the min/max color values in the legend (leave blank to omit) */
+														  
+	
+	Variable i;
+	Variable scaleMax;
+	Variable scaleMin;
+	Variable seriesStart;
+	Variable seriesInd;
+	
+	Array normalizedValues;
+	List<PlotScatterSeries> pss1;
+	
+	
+	If (xValues.Dimension > 1650);
+		Diagnostics.ReportErrorMessage( 1, "Unable to plot Color-Scaled Series.  The number of data points is " +xValues.Dimension.Format("%d")+ ", which exceeds 1650, which is the upper limit of this plotting library.");
+		ExitProcedure;
+	End;
+	
+	scaleMax = scaleValues.Max();
+	scaleMin = scaleValues.Min();
+	
+	normalizedValues = (scaleValues-scaleMin)/(abs(scaleMax-scaleMin));
+	
+	
+	seriesStart = pw.Series.Count;
+	
+	pw.BeginBatchUpdate();
+	
+	pss1.Clear();
+	pss1.Count = xValues.Dimension;
+	
+	For i = 0 to pss1.Count-1;
+		
+		// add point
+		pss1[i].AddPoints(xValues[i], yValues[i]);
+		// formatting
+		pss1[i].MarkersVisible = 1;
+		pss1[i].MarkersSize    = markerSize;
+		pss1[i].MarkersStyle   = markerStyle;
+		pss1[i].LineVisible    = 0;
+		pss1[i].ShowInLegend   = 0;
+		
+		// adjust color based on scale value
+		pss1[i].MarkersColor = ColorTools.InterpolateColorRGB( colorRange,  normalizedValues[i]);
+		
+		// now add to plot window
+		pw.AddSeries(pss1[i]);
+	End;					  
+	
+	// determine whether or not to show min/max labels in the legend
+	If (minMaxLabels.Dimension == 2);
+		If (minMaxLabels[0].Length > 0);
+			seriesInd = seriesStart + scaleValues.FindFirst(scaleMin);		
+			pw.Series[seriesInd].ShowInLegend = 1;
+			pw.Series[seriesInd].Label        = minMaxLabels[0];
+		End;
+		
+		If (minMaxLabels[1].Length > 0);
+			seriesInd = seriesStart + scaleValues.FindLast(scaleMax);		
+			pw.Series[seriesInd].ShowInLegend = 1;
+			pw.Series[seriesInd].Label        = minMaxLabels[1];
+		End;
+	End;
+	
+	pw.EndBatchUpdate();
+	
+EndProcedure;
+
+
+// PlotScatterMeanAndEllipse()
+// Generates an n-Sigma ellipse from a set of scatter data, and plots the mean point and ellipse
+//
+// Dependencies:
+//     - AddSinglePointToPlot()
+//
+// Assumptions:
+//     - None
+
+Define Procedure PlotScatterMeanAndEllipse(	PlotWindow           pw,	/* Input/Output - plot window to be updated  */
+								    		Array          x_values,	/* Input/       - array of the x-values of the series  */
+											Array          y_values,	/* Input/       - array of the y-values of the series  */
+											Variable    sigma_level,    /* Input/       - the sigma-value of the ellipse to plot (1,2,3)  */
+											Variable     line_width,    /* Input/       - the width of the ellipse line)  */
+											Variable     line_color,    /* Input/       - the color of the mean point and ellipse line  */
+											Variable  include_label);	/* Input/       - 0/1 flag indicating whether or not to label the mean and ellipse  */
+
+	Variable a;
+	Variable b;
+	Variable i;
+	Variable theta;
+	Variable min_x;
+	Variable max_x;
+	Variable half_count;
+	Variable temp_y;
+	
+	Array temp_x;
+	Array ellipse_x;
+	Array ellipse_y;
+	Array mean;
+	
+	Matrix scatter_data;
+	Matrix covariance;
+	Matrix eigen_vals;
+	Matrix eigen_vecs;
+	Matrix rot(2, 2);
+	Matrix rotated_values;
+	
+	String mean_label;
+	
+	List<PlotScatterSeries> pss1;
+	
+	pss1.Clear();
+	pss1.Count = 1;
+	
+	ellipse_x.Clear();
+	ellipse_y.Clear();
+	
+	scatter_data = [x_values.ToColumnMatrix(), y_values.ToColumnMatrix()];
+	
+	
+	// Compute mean and covariance of lat/lon points
+	scatter_data = scatter_data.Transpose();
+	covariance = CovarianceUtilities.CalculateMeanAndCovariance(scatter_data, mean);
+	covariance.EigenDecomposition(eigen_vals, eigen_vecs);
+	
+	// get rotation from eigen-axis coordinates
+	theta = atan2(eigen_vecs[0, 1], eigen_vecs[1, 1]);
+	rot[0,:] = [ cos(theta), sin(theta)];
+	rot[1,:] = [ -sin(theta),  cos(theta)];
+	
+
+	
+	// compute semi-major and semi-minor axes of ellipse
+	a = sigma_level*sqrt(eigen_vals[0, 0]);
+	b = sigma_level*sqrt(eigen_vals[1, 1]);
+	
+	// compute the min/max x values of the ellipse
+	min_x = -1*a + 0.0000001; // guard against valid range errors
+	max_x = a	 - 0.0000001;
+	
+	half_count = 100;
+	temp_x.FillLinspace(min_x, max_x, half_count);
+	
+	ellipse_x.Dimension = half_count*2;
+	ellipse_y.Dimension = half_count*2;
+	
+	// compute values of the n-sigma ellipse (in two halves)
+	For i = 0 to temp_x.Dimension-1;
+
+		temp_y   =  b*sqrt(1 - ((temp_x[i])^2)/(a^2));
+
+		rotated_values = rot*[temp_x[i]; temp_y];
+	
+		ellipse_x[i] = rotated_values[0,0] + mean[0];
+		ellipse_y[i] = rotated_values[1,0] + mean[1];
+		
+		// second half of the ellipse
+		rotated_values = rot*[temp_x[i]; -1*temp_y];
+		
+		ellipse_x[half_count+i] = rotated_values[0,0] + mean[0];
+		ellipse_y[half_count+i] = rotated_values[1,0] + mean[1];
+	End;
+	
+	// put data into the plotwindow
+	If (include_label);
+		pss1[0].Label = sigma_level.Format("%d-Sigma");
+		mean_label = "Mean Value";
+	End;
+	
+	pw.BeginBatchUpdate();
+	
+	// plot the mean point
+	Call AddSinglePointToPlot(pw, mean[0], mean[1], 7, 1 /*circle*/, line_color, mean_label);
+	
+	// add data with line break
+	For i = 0 to ellipse_x.Dimension-1;
+		If (i == half_count);
+			pss1[0].InsertLineBreak();
+		End;
+		pss1[0].AddPoints(ellipse_x[i], ellipse_y[i]);
+	End;
+
+	pss1[0].ShowInLegend = include_label;
+	
+	// format series
+	pss1[0].MarkersVisible = 0;
+	pss1[0].LineColor = line_color;
+	pss1[0].LineStyle = 1;
+	pss1[0].LineWidth = line_width;
+	
+	// add to plot
+	pw.AddSeries(pss1[0]);
+	
+	pw.EndBatchUpdate();
+	
+EndProcedure;
+
+// MakeHeatMap()
+// This procdure sets the line and marker size a single plot series at the specfied index and sets the label into the legend
+//
+// Dependencies:
+//     - None
+//
+// Assumptions:
+//     - Assumes Plot Window has been populated with data
+
+//Define Procedure MakeHeatMap(	PlotWindow              pw,   /* Input/Output - plot window to be updated  */
+//								    				Array              xValues,   /* Input/       - array of the x-values of the series  */
+//													Array              yValues,   /* Input/       - array of the y-values of the series  */
+//													Matrix             zValues,   /* Input/       - matrix of the "z"-value data to be encoded in the point color  */
+//													Array           colorRange,   /* Input/       - an array of the colors to be interpolated  */
+//													Variable    num_color_bins,   /* Input/       - the number of different color bins for the z-value data */
+//													Variable        markerSize,   /* Input/       - the size of the markers for the series */
+//													Variable       markerStyle,   /* Input/       - numeric code for the shape of the marker (0-14) */
+//													StringArray   minMaxLabels);  /* Input/       - labels for the min/max color values in the legend (leave blank to omit) */
+//														  
+//	
+//	Variable i;
+//	Variable j;
+//	Variable k;
+//	Variable scaleMax;
+//	Variable scaleMin;
+//	Variable seriesStart;
+//	Variable seriesInd;
+//	Variable half_bin;
+//	Array binned_colors;
+//	Matrix normalizedValues;
+//	List<PlotScatterSeries> pss1;
+//	
+//	seriesStart = pw.Series.Count;
+//	
+//	If ((xValues.Dimension + seriesStart) > 1650);
+//		Diagnostics.ReportErrorMessage( 1, "Unable to plot Color-Scaled data.  The number of data points is " +xValues.Dimension.Format("%d")+ ", which, when added to this plot's existing series exceeds 1650, which is the upper limit of this plotting library.");
+//		ExitProcedure;
+//	End;
+//	If ((num_color_bins + seriesStart) > 1650);
+//		Diagnostics.ReportErrorMessage( 1, "Unable to plot Color-Scaled data.  The number of color bins is " +num_color_bins.Format("%d")+ ", which, when added to this plot's existing series exceeds 1650, which is the upper limit of this plotting library.");
+//		ExitProcedure;
+//	End;
+//	
+//	scaleMax = zValues.Max();
+//	scaleMin = zValues.Min();
+//	
+//	normalizedValues = (zValues-scaleMin)/(abs(scaleMax-scaleMin));
+//	
+//	binned_colors.Clear();
+//	binned_colors.Dimension = num_color_bins;
+//	
+//	half_bin = 1/num_color_bins/2;
+//	
+//	// interpolate colors for each bin
+//	For i = 1 to num_color_bins;
+//		binned_colors[i-1] = ColorTools.InterpolateColorRGB( colorRange,  (i-1) + half_bin);
+//	End;
+//	
+//	
+//	pw.BeginBatchUpdate();
+//	
+//	pss1.Clear();
+//	pss1.Count = num_color_bins;
+//	
+//	
+//	
+//	
+//	For i = 0 to xValues.Dimension-1;
+//		
+//		For j = 0 to yValues.Dimension-1;
+//			
+//			
+//			If (zValues[i,j]
+//		// add point
+//		pss1[i].AddPoints(xValues[i], yValues[j]);
+//		// formatting
+//		pss1[i].MarkersVisible = 1;
+//		pss1[i].MarkersSize    = markerSize;
+//		pss1[i].MarkersStyle   = markerStyle;
+//		pss1[i].LineVisible    = 0;
+//		pss1[i].ShowInLegend   = 0;
+//		
+//		// adjust color based on scale value
+//		pss1[i].MarkersColor = ColorTools.InterpolateColorRGB( colorRange,  normalizedValues[i,j]);
+//		
+//		End;
+//		
+//	End;					  
+//	
+//		// now add to plot window
+//		pw.AddSeries(pss1[i]);
+//		
+//	// determine whether or not to show min/max labels in the legend
+//	If (minMaxLabels.Dimension == 2);
+//		If (minMaxLabels[0].Length > 0);
+//			seriesInd = seriesStart + scaleValues.FindFirst(scaleMin);		
+//			pw.Series[seriesInd].ShowInLegend = 1;
+//			pw.Series[seriesInd].Label        = minMaxLabels[0];
+//		End;
+//		
+//		If (minMaxLabels[1].Length > 0);
+//			seriesInd = seriesStart + scaleValues.FindLast(scaleMax);		
+//			pw.Series[seriesInd].ShowInLegend = 1;
+//			pw.Series[seriesInd].Label        = minMaxLabels[1];
+//		End;
+//	End;
+//	
+//	pw.EndBatchUpdate();
+//	
+//EndProcedure;

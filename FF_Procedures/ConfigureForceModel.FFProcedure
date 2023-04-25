@@ -1,0 +1,70 @@
+
+
+// ConfigureForceModel()
+// Configures the force model of the input Spacecraft
+// Inputs:
+//       - Spacecraft whose Force Model is to be configured
+//       - Array of Force Model values 
+//          + { fieldSize, drag, SRP, scMass, scArea }
+//          + fieldSize (1 for Point Mass, 2 for J2-only, anything else is NxN)
+//          + Drag On/Off 
+//          +  SRP On/Off 
+//          + Nominal SC Dry Mass (kg)
+//          + Nominal SC Drag & SRP Area (m^2)
+//
+// Outputs:
+//       - fully configured Spacecraft Force Model
+//
+// Dependencies: 
+//       - None
+//
+// Assumptions:
+//       - assumes an Integrator-type propagator
+//       - assumes Jacchia-Roberts as the Density model for Drag
+
+Define Procedure ConfigureForceModel(Spacecraft        sc,  /* Input/Output - Spacecraft whose Force Model is to be configured  */ 
+									 Array        fmProps,  /* Input/       - Array of Force Model values  { fieldSize, drag, SRP, scMass, scArea }  */
+									 String      fluxFile); /* Input/       - Full or relative path to the Solar Flux data file to use; blank String uses Default  */
+	
+	Alias fm = (sc.Propagator AsType Integrator).ForceModel;
+	
+	// drag/srp
+	fm.Drag      = fmProps[1];
+	fm.AtmosphericDensityModel   = 3;
+	
+	If (fluxFile != "");
+		fm.SolarFluxFilename = fluxFile;
+	End;
+	
+	fm.SRP       = fmProps[2];
+	sc.DragArea  = fmProps[4]; // m^2
+	sc.SRPArea   = fmProps[4]; // m^2
+	sc.MassTotal = fmProps[3];
+	
+	// don't include thrid body for point mass or J2 propagations
+	If (fmProps[0] <= 3);
+		fm.Sun     = 0;
+		fm.Moon    = 0;
+		fm.Jupiter = 0;
+	Else;
+		fm.Sun     = 1;
+		fm.Moon    = 1;
+		fm.Jupiter = 1;
+	End;
+	
+	// non-spherical
+	If (fmProps[0] == 1);
+		fm.PlanetFieldType[2] = 0;
+	Else;
+		fm.PlanetFieldType[2]   = 2;
+		fm.PlanetFieldDegree[2] = fmProps[0];
+		fm.PlanetFieldOrder[2]  = fmProps[0];
+		
+		// turn off tesserals for J2 only
+		If (fmProps[0] == 2 or fmProps[0] == 3);
+			fm.PlanetFieldOrder[2]  = 0;
+		End;
+	End;
+	
+	
+EndProcedure;

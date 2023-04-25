@@ -1,0 +1,99 @@
+
+// CrossfadeImages()
+// Animates the display of multiple images by fading them in and out over
+// user-specified time intervals
+//
+// Inputs/Outputs:  (See below)
+//
+//
+// Dependencies:
+//       - None
+//
+// Assumptions:
+//       - None
+//
+Define Procedure CrossfadeImages(	StringArray imageFilePaths, 	/* Input/       - list of full or relative paths to the images to display  */
+									Variable          fadeTime, 	/* Input/       - the time in seconds spent fading between images  */
+									Variable        remainTime);	/* Input/       - the time in seconds spent remaining on a single image  */
+
+	WindowOverlay images;
+	ViewWindow vw1({images});
+
+	Variable n;
+	Variable i;
+	Variable j;
+	Variable maxOpacity = 95;
+	Variable titlePause = 0.085;
+
+
+	n = imageFilePaths.Dimension;
+
+	images.RemoveAllShapes();
+
+	// set up image overlays
+	For i = 0 to n-1;
+		images.AddShape();
+
+		images.Shapes[i].SetOrigin(0, 0, 0);
+		images.Shapes[i].Visible = 0;
+
+		images.Shapes[i].Type = "Image";
+		images.Shapes[i].Opacity = 0;
+		images.Shapes[i].ImageOptions.ImageFilename = imageFilePaths[i];
+		images.Shapes[i].ImageOptions.AspectRatio   = 3; 
+	End;
+
+	// set up empty view window
+	vw1.ShowLogo = 0;
+	vw1.ShowStatusText = 0;
+	vw1.CurrentViewpoint.ViewpointType = "view";
+	vw1.SetShowObject(0, "CelestialObject", 0);
+	vw1.SetShowObject( Stars.ObjectId, 0);
+
+
+	// fade in first image
+	images.Shapes[0].Visible = 1;
+	For j = 0 to maxOpacity;
+
+		images.Shapes[0].Opacity = j/maxOpacity;
+
+		vw1.Update();
+
+		Pause fadeTime/maxOpacity;
+	End;
+
+	Pause remainTime;
+
+	// now crossfade the images in order
+	For i = 0 to n-2;
+
+		images.Shapes[i+1].Opacity = 0;
+		images.Shapes[i+1].Visible = 1;
+
+		For j = 0 to maxOpacity;
+
+			images.Shapes[i+1].Opacity = j/maxOpacity;
+
+			images.Shapes[i].Opacity = 1-j/maxOpacity;
+
+			vw1.Update();
+
+			Pause fadeTime/maxOpacity;
+		End;
+
+		Pause remainTime;
+		images.Shapes[i].Visible = 0;
+	End;
+
+	i+=1;
+	// now fade out final image
+	For j = 0 to maxOpacity;
+
+		images.Shapes[i].Opacity = 1-j/maxOpacity;
+
+		vw1.Update();
+
+		Pause fadeTime/maxOpacity;
+	End;
+	
+EndProcedure;

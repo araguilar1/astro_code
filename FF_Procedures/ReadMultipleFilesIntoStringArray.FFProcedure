@@ -1,0 +1,37 @@
+// ReadMultipleFilesIntoStringArray()
+// Reads several files into memory, and appends all file data into a single string array
+// 
+// Inputs / Outputs (see below)
+//
+//
+// Dependencies:  (None)
+//
+// Assumptions:
+//       - assumes ASCII file data
+//       - assumes read access for FreeFlyer at the desired location
+
+Define Procedure ReadMultipleFilesIntoStringArray(StringArray filesWithPath,   /* Input/       - all files (with path) to be read and concatenated  */
+												  StringArray   allFileData);  /*      /Output - the data from all files, concatenated into a single String Array  */
+	
+	
+	Variable i;
+	Variable n;
+	Variable startInd;
+	List<StringArray> rawFileData;
+	
+	n = 0;
+	
+	rawFileData.Clear();
+	
+	// read data file(s)
+	rawFileData.Count = filesWithPath.Dimension;
+	For i = 0 to filesWithPath.Dimension-1;
+		n += rawFileData[i].ReadFromFile(filesWithPath[i]);
+		
+		startInd = allFileData.Dimension;
+		allFileData.Dimension = n;
+		
+		allFileData[startInd:n-1] = rawFileData[i];
+	End;
+	
+EndProcedure;

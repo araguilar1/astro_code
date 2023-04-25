@@ -1,0 +1,180 @@
+
+
+// CalculateRICtoMJ2KDCM()
+// This Procedure calculates the DCM to convert from RIC to MJ2K
+// Inputs / Outputs:    
+//           - See Below
+//		
+// Dependencies:
+//           - None
+//
+// Assumptions:
+//           - None
+
+Define Procedure CalculateRICtoMJ2KDCM(Array   posVelState,    /*  Input/       - 6-element Array containing Cartesian position and velocity */
+									   Matrix dcmRICtoMJ2K);   /*       /Output - 3x3 Matrix to store the DCM from RIC to MJ2000 */
+	
+	Variable i;
+	Array rHat[3];
+	Array vHat[3];
+	Array cHat[3];
+	Array iHat[3];
+
+	rHat = posVelState[0:2];
+	rHat = rHat.Normalized();
+
+	vHat = posVelState[3:5];
+	vHat = vHat.Normalized();
+
+	cHat = rHat.CrossProduct(vHat);
+	cHat = cHat.Normalized();
+
+	iHat = cHat.CrossProduct(rHat);
+	iHat = iHat.Normalized();
+
+	
+
+	dcmRICtoMJ2K[:,0] = rHat.ToColumnMatrix(); // r down the first column
+	dcmRICtoMJ2K[:,1] = iHat.ToColumnMatrix(); // i down the second column
+	dcmRICtoMJ2K[:,2] = cHat.ToColumnMatrix(); // c down the third column
+	// dcmRICtoMJ2K then converts from RIC to MJ2000
+
+EndProcedure;
+
+
+// ConvertCovarianceFromMJ2KtoRIC()
+// This Procedure computes RIC covariance from MJ2K inputs, storing position and velocity separately
+// Inputs / Outputs:    
+//           - See Below
+//		
+// Dependencies:
+//           - CalculateRICtoMJ2KDCM()
+//
+// Assumptions:
+//           - None
+
+Define Procedure ConvertCovarianceFromMJ2KtoRIC(Array    posVelState,      /*  Input/       - 6-element Array containing Cartesian position and velocity */
+												Matrix  posCovInMJ2K,      /*  Input/       - 3x3 MJ2K position covariance */
+												Matrix  velCovInMJ2K,      /*  Input/       - 3x3 MJ2K velocity covariance */
+												Matrix   posCovInRIC,      /*       /Output - 3x3 RIC position covariance */
+												Matrix   velCovInRIC);     /*       /Output - 3x3 RIC velocity covariance */
+
+	
+	Matrix dcmMJ2KtoRIC(3,3);
+	Matrix transposeOfDcmMJ2KtoRIC(3,3);
+	Matrix tempDCM(3,3);
+
+	Call CalculateRICtoMJ2KDCM(posVelState, transposeOfDcmMJ2KtoRIC);
+	dcmMJ2KtoRIC = transposeOfDcmMJ2KtoRIC.Transpose();
+
+	posCovInRIC = dcmMJ2KtoRIC * posCovInMJ2K * transposeOfDcmMJ2KtoRIC;
+
+	// because the off-block diagonals of the transformation matrix are zero, you can do it separately
+	velCovInRIC = dcmMJ2KtoRIC * velCovInMJ2K * transposeOfDcmMJ2KtoRIC;
+	
+EndProcedure;
+
+
+
+// ConvertCovarianceFromRICtoMJ2K()
+// This Procedure computes RIC covariance from MJ2K inputs, storing position and velocity separately
+// Inputs / Outputs:    
+//           - See Below
+//
+// Dependencies:
+//           - CalculateRICToMJ2kDCM()
+//
+// Assumptions:
+//           - None
+
+Define Procedure ConvertCovarianceFromRICtoMJ2K(Array    posVelState,      /*  Input/       - 6-element Array containing Cartesian position and velocity */
+												Matrix   posCovInRIC,      /*  Input/       - 3x3 RIC position covariance */
+												Matrix   velCovInRIC,      /*  Input/       - 3x3 RIC velocity covariance */
+												Matrix  posCovInMJ2K,      /*       /Output - 3x3 MJ2K position covariance */
+												Matrix  velCovInMJ2K);     /*       /Output - 3x3 MJ2K velocity covariance */
+	
+
+	Matrix dcmMJ2KtoRIC(3,3);
+	Matrix transposeOfDcmMJ2KtoRIC(3,3);
+
+	Call CalculateRICtoMJ2KDCM(posVelState, transposeOfDcmMJ2KtoRIC);
+	dcmMJ2KtoRIC = transposeOfDcmMJ2KtoRIC.Transpose();
+
+	posCovInMJ2K = transposeOfDcmMJ2KtoRIC * posCovInRIC * dcmMJ2KtoRIC;
+
+	// because the off-block diagonals of the transformation matrix are zero, you can do it separetly
+	velCovInMJ2K = transposeOfDcmMJ2KtoRIC * velCovInRIC * dcmMJ2KtoRIC;
+	
+EndProcedure;
+
+
+
+// ConvertFullCovarianceFromMJ2KtoRIC()
+// This Procedure computes RIC covariance from MJ2K inputs
+// Inputs / Outputs:    
+//           - See Below
+//
+// Dependencies:
+//           - CalculateRICtoMJ2KDCM()
+//
+// Assumptions:
+//           - None
+
+Define Procedure ConvertFullCovarianceFromMJ2KtoRIC(Array   posVelState,      /*  Input/       - 6-element Array containing Cartesian position and velocity */
+												    Matrix    covInMJ2K,      /*  Input/       - 6x6 MJ2K position and velocity covariance */
+												    Matrix     covInRIC);     /*       /Output - 6x6 RIC position and velocity covariance */
+	
+	// 
+
+	
+	Matrix smallTransposeOfDcmMJ2KtoRIC(3,3);
+	Matrix dcmMJ2KtoRIC(6,6);
+	Matrix transposeOfDcmMJ2KtoRIC(6,6);
+
+	Call CalculateRICtoMJ2KDCM(posVelState, smallTransposeOfDcmMJ2KtoRIC);
+	
+	transposeOfDcmMJ2KtoRIC.Fill(0);
+	transposeOfDcmMJ2KtoRIC[0:2,0:2] = smallTransposeOfDcmMJ2KtoRIC;
+	transposeOfDcmMJ2KtoRIC[3:5,3:5] = smallTransposeOfDcmMJ2KtoRIC;
+		
+	dcmMJ2KtoRIC = transposeOfDcmMJ2KtoRIC.Transpose();
+
+	covInRIC = dcmMJ2KtoRIC * covInMJ2K * transposeOfDcmMJ2KtoRIC;
+	
+EndProcedure;
+
+
+
+// ConvertFullCovarianceFromRICtoMJ2K()
+// This Procedure computes MJ2K covariance from RIC inputs
+// Inputs / Outputs:    
+//           - See Below
+//
+// Dependencies:
+//           - CalculateRICtoMJ2KDCM()
+//
+// Assumptions:
+//           - None
+
+Define Procedure ConvertFullCovarianceFromRICtoMJ2K(Array    posVelState,     /*  Input/       - 6-element Array containing Cartesian position and velocity */
+												    Matrix      covInRIC,     /*  Input/       - 6x6 RIC position and velocity covariance */
+												    Matrix     covInMJ2K);    /*       /Output - 6x6 MJ2K position and velocity covariance */
+
+
+
+	Matrix smallTransposeOfDcmMJ2KtoRIC(3,3);
+	Matrix dcmMJ2KtoRIC(6,6);
+	Matrix transposeOfDcmMJ2KtoRIC(6,6);
+
+	Call CalculateRICtoMJ2KDCM(posVelState, smallTransposeOfDcmMJ2KtoRIC);
+	
+	transposeOfDcmMJ2KtoRIC.Fill(0);
+	transposeOfDcmMJ2KtoRIC[0:2,0:2] = smallTransposeOfDcmMJ2KtoRIC;
+	transposeOfDcmMJ2KtoRIC[3:5,3:5] = smallTransposeOfDcmMJ2KtoRIC;
+		
+	dcmMJ2KtoRIC = transposeOfDcmMJ2KtoRIC.Transpose();
+
+	covInMJ2K = transposeOfDcmMJ2KtoRIC * covInRIC * dcmMJ2KtoRIC;
+	
+EndProcedure;
+

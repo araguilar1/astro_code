@@ -1,0 +1,50 @@
+
+
+// FindFilesInDirectory()
+// Searches the specfied directory (dir) for any files containing the specified file Identifier string.
+// All matches are returned in a String Array with the complete filename and the supplied file path.
+// 
+// Inputs / Outputs (see below)
+//
+// Dependencies:  
+//       None
+//
+// Assumptions:
+//       
+
+Define Procedure FindFilesInDirectory(String                     dir,  /* Input/       - directory to search, with full or relative path including trailing '/'  */
+									  String          fileIdentifier,  /* Input/       - string to find in the filenames of the supplied directory  */
+									  StringArray filesFoundWithPath); /*      /Output - all files (with path) that match the supplied identifier  */
+	
+	StringTokenizer st1;
+	
+	Variable i;
+	
+	StringArray filesInDir;
+	
+	filesInDir.Clear();
+		
+	filesInDir = FileSystem.DirectoryList(dir);
+
+	// include a try in case it was already removed
+	Try;
+		st1.RemoveDelimiter(" ");
+	End;
+	st1.AddDelimiter(fileIdentifier);
+	
+	For i = 0 to filesInDir.Dimension-1;
+		
+		st1.StringToParse = filesInDir[i];
+		
+		If (st1.Tokens.Count == 1 and st1.Tokens[0].Length == filesInDir[i].Length);
+			// identifier was not found, and the entire string to search was returned
+			Continue;
+		Else;
+			filesFoundWithPath.PushBack(dir+filesInDir[i]);
+		End;
+	End;
+	
+	// remove the delimiter to avoid stacking them up over subsequent calls
+	st1.RemoveDelimiter(fileIdentifier);
+	
+EndProcedure;

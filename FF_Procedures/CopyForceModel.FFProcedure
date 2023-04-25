@@ -1,0 +1,70 @@
+
+// CopyForceModel()
+// Copies all force model properties from one spacecraft to another
+//
+// Inputs/Outputs:
+//       - see below
+//
+// Dependencies:
+//     - none
+//
+// Assumptions:
+//     - none
+
+
+Define Procedure CopyForceModel(Spacecraft copy_from, 	/* Input/       - Spacecraft from which Force Model properties are copied  */
+								Spacecraft   copy_to);	/*      /Output - Spacecraft _to_ which Force Model properties are copied  */
+	
+	
+	If ( !(copy_from.Propagator IsType Integrator));
+		Diagnostics.ReportErrorMessage(0, "Cannot copy force model parameters; the Propagator of '"+copy_from.DisplayName + "' is not an Integrator.");
+		ExitProcedure;
+	End;
+	If ( !(copy_to.Propagator IsType Integrator));
+		Diagnostics.ReportErrorMessage(0, "Cannot copy force model parameters; the Propagator of '"+copy_to.DisplayName + "' is not an Integrator.");
+		ExitProcedure;
+	End;
+	
+	//area parms
+	copy_to.DragArea = copy_from.DragArea;
+	copy_to.SRPArea  = copy_from.SRPArea;
+	copy_to.LiftArea = copy_from.LiftArea;
+	
+	// coefficients
+	copy_to.Cd = copy_from.Cd;
+	copy_to.Cr = copy_from.Cr;
+	copy_to.Cl = copy_from.Cl;
+	
+	Alias from_fm = (copy_from.Propagator AsType Integrator).ForceModel;
+	Alias to_fm   = (copy_to.Propagator AsType Integrator).ForceModel;
+	
+	// planetary force flags
+	to_fm.UseBodyForce = from_fm.UseBodyForce;
+	
+	// non-spherical gravity and solid tides
+	to_fm.PlanetoPotentialFilename = from_fm.PlanetoPotentialFilename;
+	to_fm.PlanetFieldType          = from_fm.PlanetFieldType;
+	to_fm.PlanetFieldDegree        = from_fm.PlanetFieldDegree;
+	to_fm.PlanetFieldOrder         = from_fm.PlanetFieldOrder;
+	to_fm.SolidTideFilename        = from_fm.SolidTideFilename;
+	to_fm.SolidTideDegree          = from_fm.SolidTideDegree;
+	to_fm.SolidTideOrder           = from_fm.SolidTideOrder;
+	to_fm.UseZeroTideModel         = from_fm.UseZeroTideModel;
+	
+	// drag
+	to_fm.Drag = from_fm.Drag;
+	to_fm.AtmosphericDensityModel = from_fm.AtmosphericDensityModel;
+	to_fm.SolarFluxFilename       = from_fm.SolarFluxFilename;
+	to_fm.Rho1                    = from_fm.Rho1;
+	
+	// SRP
+	to_fm.SRP = from_fm.SRP;
+	to_fm.SRPForceGeometry = from_fm.SRPForceGeometry;
+	
+	
+	// unmodeled accelerations
+	to_fm.UseOtherAcceleration   = from_fm.UseOtherAcceleration;
+	to_fm.OtherAccelerations     = from_fm.OtherAccelerations;
+	to_fm.OtherAccelerationsRate = from_fm.OtherAccelerationsRate;
+	
+EndProcedure;
