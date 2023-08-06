@@ -3,6 +3,15 @@ Start astro.py: Script containing functions for astrodynamic applications
 
 Author: Abram Aguilar
 
+Class Objects and Method Objects have the following naming convention:
+    Class Objects: UpperCamelCase
+    Method Objects: lower_case_with_underscores
+    ex. class CelestialObject, method axial_rotation_period()
+    
+Functions have the following naming convention:
+    Functions: camelCase
+    ex. function characteristicQuantities()
+
 12/29/2019: Creation
 """
 
@@ -13,17 +22,42 @@ import matplotlib.pyplot as plt
 from scipy.integrate import solve_ivp
 from scipy.optimize import newton
 
-# Define a cross product function using np.cross() that 
-# does not cause a bug in Pylance (VS Code)
-# def cross(a: np.ndarray, b: np.ndarray) -> np.ndarray:
-#     return np.cross(a, b)
-cross = lambda a, b: np.cross(a, b)
-
-
 class CelestialObject:
     """
-    Class for extracting celestial body data used in the CR3BP. The data table below contains the following
-    information:
+    Class for extracting celestial body data. 
+    
+    Attitributes:
+    ------------
+        body: str 
+            Name of celestial body
+        ID: int 
+            ID number of celestial body
+        data: list 
+            List of data for celestial body
+
+    Methods:
+    --------
+        axial_rotation_period(): 
+            Returns axial rotation period of celestial body
+        equatorial_radius(): 
+            Returns equatorial radius of celestial body
+        mu(): 
+            Returns gravitational parameter of celestial body
+        mass(): 
+            Returns mass of celestial body
+        orbit_semi_major_axis(): 
+            Returns semi-major axis of celestial body's orbit
+        orbital_period(): 
+            Returns orbital period of celestial body
+        orbit_eccentricity(): 
+            Returns eccentricity of celestial body's orbit
+        orbit_inclination(): 
+            Returns inclination of celestial body's orbit
+        name(): 
+            Returns name of celestial body
+
+
+    The data table below contains the following information:
 
         data[ID][0] = Axial Rotation Period (Rev/Day)
         data[ID][1] = Equatorial Radius (km)
@@ -149,13 +183,13 @@ class CelestialObject:
         return self.data[7]
 
 
-def CharacteristicQuantities(P1, P2):
+def characteristicQuantities(P1, P2):
     """
-   Returns array of characteristic quantities of the CR3BP for a primary-secondary system:
-   1. System Mass Ratio (mu) 
-   2. Characteristic Length
-   3. Characteristic Time
-   """
+    Returns array of characteristic quantities of the CR3BP for a primary-secondary system:
+    1. System Mass Ratio (mu) 
+    2. Characteristic Length
+    3. Characteristic Time
+    """
     m_star = P1.mass() + P2.mass()
     m2 = P2.mass()
     mu = m2 / m_star
@@ -164,7 +198,17 @@ def CharacteristicQuantities(P1, P2):
     return [mu, lstar, tstar]
 
 
-def CR3BP_ODE(ndx, t, mu):
+def cr3bpOde(ndx, t, mu):
+    """
+    CR3BP Equations of Motion
+
+    :param ndx: State Vector
+    :param t: Time
+    :param mu: Mass Ratio
+
+    :return: State Vector Derivative
+
+    """
     # Position
     x = ndx[0]
     y = ndx[1]
@@ -187,7 +231,7 @@ def CR3BP_ODE(ndx, t, mu):
     return np.array([vx, vy, vz, ax, ay, az])
 
 
-def CR3BP_ODE_STM(ndx, t, mu):
+def cr3bpOdeStm(ndx, t, mu):
     
     # Position
     x = ndx[0]
@@ -253,7 +297,7 @@ def jacobi(ndx, mu):
     return C
 
 
-def lagrange_points(mu):
+def lagrangePoints(mu):
     """Returns the x,y coordinates of the 5 Lagrange points for any system"""
     tol = 1e-12
 
@@ -331,7 +375,7 @@ def lagrange_points(mu):
     return np.array([[x1, 0], [x2, 0], [x3, 0], [x45, y4], [x45, y5]])
 
 
-def lpoints(mu):
+def lagrangePoints2(mu):
 
     def collinear(x, mu):
         d = np.abs(x + mu)
@@ -352,7 +396,7 @@ def lpoints(mu):
     return np.array([[x1, 0], [x2, 0], [x3, 0], [x45, y4], [x45, y5]])
 
 
-def nondim(x, lstar, tstar, mu, shift=True):
+def nonDim(x, lstar, tstar, mu, shift=True):
     """Takes a dimensional state (km, km/s) and non-dimensionalizes it using the CR3BP
         Characteristic Quantities
         
@@ -365,7 +409,7 @@ def nondim(x, lstar, tstar, mu, shift=True):
     return ndx
 
 
-def dimensionalize(ndx, lstar, tstar, mu, shift=True):
+def dim(ndx, lstar, tstar, mu, shift=True):
     """Converts a non-dimensional CR3BP state to a dimensional state (km, km/s)
     
     if shift = True, origin shifted to primary"""
@@ -377,7 +421,7 @@ def dimensionalize(ndx, lstar, tstar, mu, shift=True):
     return x
 
 
-def CR3BPtoJ2K(rp2, vp2, direction=0):
+def cr3bpToJ2k(rp2, vp2, direction=0):
     """" 
     Returns the Rotation Matrix for the following transformation:   
     CR3BP State -> J2000 State
@@ -390,11 +434,11 @@ def CR3BPtoJ2K(rp2, vp2, direction=0):
     'TRAJECTORY DESIGN AND ORBIT MAINTENANCE STRATEGIES IN MULTI-BODY DYNAMICAL REGIMES'
     """
     lstar = np.linalg.norm(rp2)
-    h_ = cross(rp2, vp2)
+    h_ = np.cross(rp2, vp2)
     h = h_/lstar**2
     xhat = rp2/lstar 
     zhat = h/np.linalg.norm(h)
-    yhat = cross(zhat, xhat)
+    yhat = np.cross(zhat, xhat)
     R0 = np.array([xhat[0], yhat[0], zhat[0], xhat[1], yhat[1], zhat[1], xhat[2], yhat[2], zhat[2]]).reshape(3,3)
     R1 = np.zeros((3,3))
     hn = np.linalg.norm(h)
@@ -409,15 +453,17 @@ def CR3BPtoJ2K(rp2, vp2, direction=0):
       return np.linalg.inv(R)
 
 
-def per_orb_df():
-    """Function returns a dataframe of period Lagrange Orbit information created by Dan Grebow.
-        No input is required."""
+def periodicOrbitDf():
+    """
+    Function returns a dataframe of period Lagrange Orbit information created by Dan Grebow.
+        No input is required.
+        NOTE: Assumes that the csv file is in the same directory as this script"""
     data = r'periodicLagrangeOrbits.csv'
     df = pd.read_csv(data)
     return df
 
 
-def plotZVC(mu, C, fill=0):
+def plotZvc(mu, C, fill=0):
     """ Plots the ZVC surface for a given mu and Jacobi constant. NOTE: uses matplotlib by default"""
     ax = plt.gca()
 
@@ -443,7 +489,7 @@ def plotZVC(mu, C, fill=0):
         ax.contour(x, y, ZZ)
         ax.contour(x, -y, ZZ)
 
-def TWOBODY_ODE(dx, t, mu):
+def twoBodyOde(dx, t, mu):
     r = dx[0:3]
     r3 = r**3
     v = dx[3:6]
@@ -451,7 +497,7 @@ def TWOBODY_ODE(dx, t, mu):
     return np.hstack((v, a))
 
 
-def LpointEig(ndx, mu):
+def lagrangePointEigendecomp(ndx, mu):
     x = ndx[0]
     y = ndx[1]
     z = ndx[2]
@@ -493,7 +539,7 @@ xCrossing.terminal = True
 
 def solveLyapunov(ndx, t, mu=0.0121, tol=1e-12, direction=1):
     xCrossing.direction = direction
-    xF = solve_ivp(CR3BP_ODE_STM, [0, t], ndx, args=[mu], method='DOP853', atol=tol, rtol=tol, events=xCrossing, dense_output=True)
+    xF = solve_ivp(cr3bpOdeStm, [0, t], ndx, args=[mu], method='DOP853', atol=tol, rtol=tol, events=xCrossing, dense_output=True)
     t0 = np.copy(xF.t[-1])
     x0 = xF.y[:,0]
     F = lyapunovConstraints(xF.y[:, -1])
@@ -517,9 +563,9 @@ def solveLyapunov(ndx, t, mu=0.0121, tol=1e-12, direction=1):
 
         x0[4] -= dx[0]
         t0    -= dx[1]
-        xF = solve_ivp(CR3BP_ODE_STM, [0, t0], x0, args=[mu], method='DOP853', atol=tol, rtol=tol, dense_output=True)
+        xF = solve_ivp(cr3bpOdeStm, [0, t0], x0, args=[mu], method='DOP853', atol=tol, rtol=tol, dense_output=True)
     # Return full trajectory and period at the end
-    xF = solve_ivp(CR3BP_ODE_STM, [0, 2*t0], x0, args=[mu], method='DOP853', atol=tol, rtol=tol, dense_output=True)
+    xF = solve_ivp(cr3bpOdeStm, [0, 2*t0], x0, args=[mu], method='DOP853', atol=tol, rtol=tol, dense_output=True)
     return xF.y, xF.t[-1]
 
 
@@ -560,7 +606,7 @@ def haloConstraints(ndx):
 def solveHalo(ndx, t,  mu=0.0121, direction=-1):
     xCrossing.direction = direction
     # Initial guess
-    xF = solve_ivp(CR3BP_ODE_STM, [0, t], ndx, args=[mu], method='DOP853', rtol=1e-12, atol=1e-12, events=xCrossing, dense_output=True)
+    xF = solve_ivp(cr3bpOdeStm, [0, t], ndx, args=[mu], method='DOP853', rtol=1e-12, atol=1e-12, events=xCrossing, dense_output=True)
     t0 = xF.t[-1]
     x0 = xF.y[:,0]
     F = haloConstraints(xF.y[:, -1])
@@ -590,9 +636,9 @@ def solveHalo(ndx, t,  mu=0.0121, direction=-1):
         x0[4] -= dx[1]
         t0    -= dx[2]
 
-        xF = solve_ivp(CR3BP_ODE_STM, [0, t0], x0, args=[mu], method='DOP853', rtol=1e-12, atol=1e-12, dense_output=True)
+        xF = solve_ivp(cr3bpOdeStm, [0, t0], x0, args=[mu], method='DOP853', rtol=1e-12, atol=1e-12, dense_output=True)
     # Return full traj
-    xF = solve_ivp(CR3BP_ODE_STM, [0, 2*t0], x0, args=[mu], method='DOP853', rtol=1e-12, atol=1e-12, dense_output=True)
+    xF = solve_ivp(cr3bpOdeStm, [0, 2*t0], x0, args=[mu], method='DOP853', rtol=1e-12, atol=1e-12, dense_output=True)
     return xF.y, xF.t[-1]
 
 
